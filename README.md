@@ -1,22 +1,9 @@
-# CTF Feature Migration Prompt Framework
+# HOF AI Workflows
 
-This directory contains a portable, parameter-driven prompt system for migrating cucumber features into Playwright BDD with Drone wiring.
+This directory contains ai workflows and skills being used by the HOF team.
 
-## Files
-- `ctf-feature-migration-master-prompt.md`: machine-agnostic master execution prompt.
-- `steering/lmr-blueprint.md`: canonical migration blueprint (LMR).
-- `steering/source-e2e-conventions.md`: source cucumber conventions from shared e2e repo.
-- `manifests/migration-manifest.template.yaml`: template for new migration units.
-- `manifests/modern-slavery-nrm.yaml`: concrete example manifest.
+## Current SKILLS
 
-## How to run
-1. Copy `manifests/migration-manifest.template.yaml` to a service/feature specific file.
-2. Fill placeholders (`{{WORKSPACE_ROOT}}`, service folder names, branch policy, etc.).
-3. In your agent run, provide:
-- the full master prompt from `ctf-feature-migration-master-prompt.md`
-- the chosen manifest content as `RUN_MANIFEST`
-- steering references from `steering/` as `STEERING_CONTEXT`
-4. Execute in real mode for implementation, or dry-run for planning.
+### CTF Test to Playwright Migration
 
-## Auth policy
-All migrations must enforce GitHub App based auth for Drone clone flows. PAT-based clone credentials are forbidden and must be removed where touched.
+A [SKILL](./skills/ctf-test-to-playwright/SKILL.md) targeted at migrating existing tests from `hof-e2e-auto-tests` (original source is located in Bitbucket) into Playwright BDD tests.
