@@ -1,0 +1,7 @@
+# Local secrets and private keys
+*.pem
+*.env
+*secrets*.env
+
+# Local macOS metadata
+.DS_Store

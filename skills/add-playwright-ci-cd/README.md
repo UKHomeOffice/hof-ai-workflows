@@ -174,3 +174,7 @@ After edits, validate:
 - Symptom: tests run against wrong environment URL.
 - Check: `PLAYWRIGHT_BASE_URL` is sourced from `branch_url.txt` and not reassembled inline.
 - Fix: enforce artifact-based URL contract in `e2e_tests` commands.
+
+## Required Drone Secrets
+
+See [creating drone secrets](./scripts/README.md) for detail on how to add the required CICD secrets into Drone for a given service.
