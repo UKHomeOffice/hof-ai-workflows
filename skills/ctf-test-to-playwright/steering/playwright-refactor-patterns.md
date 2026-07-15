@@ -1,62 +1,109 @@
-# Playwright Refactor Patterns
+## The target implementation must follow the architecture, design patterns, coding standards, folder structure, naming conventions, and Page Object Model implementation used in the "lmr e2e-tests" project.
 
-Use these patterns during Java Selenium to Playwright migration when preserving behavior parity.
+## Implementation Requirements
+## Project Structure
+-	Use the "lmr e2e-tests" project as the source of truth for framework implementation.
+-	Create a new folder called "e2e-tests" in 'end-tenancy' folder.
+-	Replicate the structure, patterns, fixtures, utilities, helpers, and conventions used within lmr e2e-tests.
+-	Generate all required files, folders, page objects, feature files, step definitions, fixtures, helpers, constants, and test data classes.
+-	Ensure all generated files follow consistent naming standards and match the functionality they represent.
 
-## Intent
+## Feature Files: Fully implement every scenario from the features 
+## Requirements:
+-	Preserve all business logic.
+-	Preserve all acceptance criteria.
+-	Preserve all validations.
+-	Do not omit any scenarios.
+-	Maintain full feature parity with the Selenium implementation.
 
-- Preserve source user-facing behavior and validation intent.
-- Prefer Playwright-native design and reliability over Selenium-style implementation details.
-- Keep page objects and step definitions cohesive, maintainable, and DRY.
+## Test Data Conversion if one exist all data from:
+## Requirements:
+-	Remove CSV dependency.
+-	Replace CSV-driven data with TypeScript switch-case based data management.
+-	Preserve all existing test data and business rules.
+-	Ensure test data remains easy to maintain and extend.
 
-## Page Object Patterns
+## Page Object Model: Convert all Selenium Page Objects into Playwright Page Objects.
+## Requirements:
+-	Follow the exact POM structure used in lmr e2e-tests.
+-	Create all missing pages required for the UkViet journey.
+-	Ensure file names match page names.
+-	Encapsulate all page interactions within page classes.
+-	Refactor common actions into reusable components or helper methods.
+-	Keep selectors and actions separated from test logic.
 
-- Prefer mostly one web page per page object class/module.
-- Keep each page object focused on page-level responsibilities only.
-- Move shared utilities into reusable helpers instead of duplicating across page objects.
-- Avoid cross-page orchestration inside a single page object; orchestration belongs in step-level workflow helpers.
+## Selenium to Playwright Migration Rules:
+-	Use Playwright Test Framework (@playwright/test).
+-	Convert JUnit/TestNG annotations into Playwright constructs.
+-	Convert WebDriver interactions into Playwright APIs.
+-	Use async/await throughout.
+-	Use strict TypeScript typing.
+-	Replace Selenium waits with Playwright auto-waiting.
+-	Remove Thread.sleep().
+-	Remove WebDriverWait.
+-	Remove ExpectedConditions.
+-	Replace Selenium assertions with Playwright expect assertions.
+-	Replace Selenium Actions with Playwright equivalents.
+-	Replace frame handling with frameLocator().
+-	Replace alert handling with Playwright dialog handling.
+-	Replace tab/window handling with Playwright context/page APIs.
+-	Replace JavascriptExecutor usage with Playwright-native APIs wherever possible.
 
-## Step Definition Patterns
+## Locator Strategy 
+## Prioritize:
+1. getByRole()
+2. getByLabel()
+3. getByText()
+4. locator()
+## Avoid XPath unless there is no practical alternative.
 
-- Split step definition files by journey or bounded feature area.
-- Keep step definitions thin: delegate UI behavior to page objects and helper utilities.
-- Reuse common selectors, waits, and assertions through shared modules.
-- Do not duplicate the same wait logic across many steps; centralize and call shared helpers.
 
-## Selector And Wait Patterns
+## Code Quality Standards
+-	Use latest TypeScript syntax.
+-	Apply Playwright best practices.
+-	Follow SOLID principles.
+-	Follow clean code principles.
+-	Eliminate duplicated logic.
+-	Centralize reusable functionality.
+-	Ensure the code is production-ready and maintainable.
+-	Add concise comments only where migration decisions require explanation.
 
-- Prefer role-based or accessible selectors before brittle CSS/XPath selectors.
-- Use explicit waits tied to user-observable readiness, such as heading visibility or URL transitions.
-- Avoid arbitrary sleep-based waits.
-- Use selector fallback only when needed for markup variance and only if behavior semantics stay equivalent.
 
-## Input And Interaction Patterns
+## Validation Checklist
+## Before generating code:
+-	Analyse the Selenium Java implementation.
+-	Identify all page objects.
+-	Identify all feature files.
+-	Identify all step definitions.
+-	Identify all utilities and framework components.
+-	Identify all test data sources.
+-	Identify reusable workflows.
+-	Map Selenium APIs to Playwright equivalents.
+-	Identify any Selenium functionality that does not have a direct Playwright equivalent.
 
-- For typeahead or autocomplete fields, model selection behavior explicitly: type, wait for options, select option.
-- Use keyboard interactions when source behavior depends on focus and key events.
-- Use `fill` for plain text fields where keyboard semantics are not behaviorally significant.
-- Keep branching logic route-aware; interact only with controls present on the current page.
 
-## Assertion Patterns
+## For unsupported Selenium functionality:
+-	Implement the recommended Playwright alternative.
+-	Document the migration decision.
 
-- Assert using specific visible outcomes (page heading, panel title, landmark text).
-- Avoid weak assertions against hidden or generic text.
-- Keep final submission assertions aligned to service-specific success content.
 
-## Test Data Patterns
+## Output Requirements
+## Generate:
+1. Complete Playwright TypeScript implementation.
+2. All Page Objects.
+3. All Feature Files.
+4. All Step Definitions.
+5. Fixtures and Helpers.
+6. Switch-case based test data implementation.
+7. Supporting utilities and components.
+8. Migration summary.
 
-- Keep test data under a `test-data` folder in the target test structure.
-- Translate source CSV behavior into explicit in-code data modules when needed, while retaining scenario variation intent.
-- Keep scenario keys and labels traceable to source scenarios.
-
-## Naming Patterns
-
-- Use explicit names that communicate purpose and scope.
-- Avoid single-character abbreviations for variables, helper names, and parameters.
-- Prefer names such as `selectedScenario`, `reportReference`, `currentRoute`, and `supportContactDetails`.
-
-## Selenium To Playwright Refactor Guidance
-
-- Replace Selenium-style deep page chaining with Playwright route-aware helpers.
-- Replace brittle element polling with Playwright locator assertions.
-- Replace duplicated interaction code with composable helper methods.
-- Preserve source behavior; refactor structure, not outcomes.
+## Critical Rules
+-	Do not skip any scenario.
+-	Do not use placeholders or TODO comments.
+-	Do not provide partial implementations.
+-	Ensure all code compiles and is executable.
+-	Preserve all original business behaviour and validations.
+-	Follow the ‘lmr e2e-tests’ framework structure exactly.
+-	Produce implementation-ready code.
+-	Return generated files grouped by folder structure, followed by a concise migration summary.
