@@ -102,6 +102,13 @@ If required inputs are missing, stop and report missing fields explicitly.
 6. Deploy artifact handoff requirement:
       - Ensure deploy script writes branch host artifact to `/root/.dockersock/branch_url.txt` when dockersock exists.
 
+7. Update node image in use to `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc` if it hasn't already been done
+      - Check the following files; 
+            - Dockerfile
+            - .drone.yml or .drone.yaml
+
+8. Update node engine in package.json to `>=24.15.0 <25.0.0` if it hasn't already been done.
+
 ## Supporting Scripts
 
 Use steering scripts as canonical references and copy/update into target `bin/` only when needed:
@@ -130,11 +137,12 @@ Do not duplicate entries on rerun.
 After edits, validate and report:
 1. Anchor presence and step wiring correctness.
 2. Auth compliance (no PAT usage in modified scope).
-3. PR e2e dependency chain correctness.
-4. Nightly e2e and summary flow presence.
-5. Dockersock volume and branch URL artifact wiring.
-6. Ignore file compliance.
-7. Playwright version compliance:
+3. Drone file is valid yaml with no indentation or syntax errors.
+4. PR e2e dependency chain correctness.
+5. Nightly e2e and summary flow presence.
+6. Dockersock volume and branch URL artifact wiring.
+7. Ignore file compliance.
+8. Playwright version compliance:
       - Drone Playwright image is `>=1.60.0`.
       - `@playwright/test` and `playwright` are pinned and aligned with CI runtime.
       - lockfile reflects the pinned versions (no unresolved drift).
