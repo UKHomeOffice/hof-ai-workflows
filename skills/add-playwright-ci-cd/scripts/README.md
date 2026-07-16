@@ -4,16 +4,27 @@ Use `create-drone-gh-app-secrets.sh` to add GitHub App secrets to a Drone reposi
 
 ## Prequisites & Keybase
 
-You can find the values for the required secrets in Keybase. The secrets are kept in the `github-app-secrets.txt` file. 
+1. Install the [Drone CLI](https://docs.drone.io/cli/install/)
 
-Create a github-actions-secrets.env file, in this folder, with the values from the keybase file. 
+2. You can find the values for the required secrets in Keybase. The secrets are kept in the `github-app-secrets.txt` file. 
 
-Create 2 local `.pem` files for each of the private key entries in the same directory as this script;
+3. Create a `github-actions-secrets.env` file, in this folder, with the values from the keybase file. 
+
+4. Create 2 local `.pem` files for each of the private key entries in the same directory as this script;
 
 - `ukho_gh_app.pem`
 - `hof_gh_app.pem`
 
-### Drone Details
+### Validation
+
+Your `scripts/` directory should now contain these files (worded exactly):
+
+- `create-drone-gh-app-secrets.sh`
+- `github-actions-secrets.env`
+- `ukho_gh_app.pem`
+- `hof_gh_app.pem`
+
+## Drone Details
 
 See [secret guidelines](https://collaboration.homeoffice.gov.uk/spaces/DSASS/pages/339158739/Secrets+Creation+Guidelines) for details on the DRONE_SERVER address. 
 
@@ -27,15 +38,17 @@ You can find your own DRONE_TOKEN on your drone profile:
 Keep these files in the same directory as the script:
 
 - `create-drone-gh-app-secrets.sh`
-- your secrets env file, for example `github-actions-secrets.env`
+- your secrets env file: `github-actions-secrets.env`
 - `ukho_gh_app.pem`
 - `hof_gh_app.pem`
 
-The env file should contain one secret per line:
+The env file should contain one secret per line, with the keys these exactly like this:
 
 ```env
-SECRET_NAME=secret-value
-ANOTHER_SECRET=another-secret-value
+hof_ukho_gh_app_id=<secret-value-from-keybase>
+hof_ukho_gh_app_install_id=<secret-value-from-keybase>
+HOF_GH_APP_ID=<secret-value-from-keybase>
+HOF_GH_APP_INSTALL_ID=<secret-value-from-keybase>
 ```
 
 Blank lines and lines starting with `#` are ignored.
@@ -43,13 +56,13 @@ Blank lines and lines starting with `#` are ignored.
 ## Usage
 
 ```bash
-./drone-gh-app-secrets.sh <drone-server> <drone-token> <org/repo> <secrets.env>
+./create-drone-gh-app-secrets.sh <drone-server> <drone-token> <org/repo> <secrets.env>
 ```
 
 Example:
 
 ```bash
-./drone-gh-app-secrets.sh \
+./create-drone-gh-app-secrets.sh \
   https://drone.example.gov.uk/ \
   your-drone-token \
   my-org/my-repo \
