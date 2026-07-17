@@ -100,7 +100,7 @@ If required inputs are missing, stop and report missing fields explicitly.
       - Use `bin/summarise_playwright_report.js` for stable text summary generation.
 
 6. Deploy artifact handoff requirement:
-      - Ensure deploy script writes branch host artifact to `/root/.dockersock/branch_url.txt` when dockersock exists.
+      - Ensure deploy script writes branch host artifact to `/root/.dockersock/branch_url.txt` when dockersock exists. Branch host must contain `internal` so the tests target the internally deployed service.
 
 7. Update node image in use to `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc` if it hasn't already been done
       - Check the following files; 
