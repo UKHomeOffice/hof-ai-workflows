@@ -1,8 +1,13 @@
-# Drone GitHub App Secrets
+# Drone Setup
 
-Use `create-drone-gh-app-secrets.sh` to add GitHub App secrets to a Drone repository.
+There are 2 additional things we need to do on Drone to fully support the CICD migration. 
 
-## Prequisites & Keybase
+1. Use `create-drone-gh-app-secrets.sh` to add GitHub App secrets to a Drone repository.
+2. Add a nightly cron job so that the `cron_nightly_e2e_tests` get triggered successfully each night. 
+
+## Drone Secrets
+
+### Prequisites & Keybase
 
 1. Install the [Drone CLI](https://docs.drone.io/cli/install/)
 
@@ -15,7 +20,7 @@ Use `create-drone-gh-app-secrets.sh` to add GitHub App secrets to a Drone reposi
 - `ukho_gh_app.pem`
 - `hof_gh_app.pem`
 
-### Validation
+#### Validation
 
 Your `scripts/` directory should now contain these files (worded exactly):
 
@@ -24,7 +29,7 @@ Your `scripts/` directory should now contain these files (worded exactly):
 - `ukho_gh_app.pem`
 - `hof_gh_app.pem`
 
-## Drone Details
+### Drone Details
 
 See [secret guidelines](https://collaboration.homeoffice.gov.uk/spaces/DSASS/pages/339158739/Secrets+Creation+Guidelines) for details on the DRONE_SERVER address. 
 
@@ -33,7 +38,7 @@ You can find your own DRONE_TOKEN on your drone profile:
 2. Click profile in bottom left corner
 3. Copy 'Personal Token'
 
-## Required Files
+### Required Files
 
 Keep these files in the same directory as the script:
 
@@ -53,7 +58,7 @@ HOF_GH_APP_INSTALL_ID=<secret-value-from-keybase>
 
 Blank lines and lines starting with `#` are ignored.
 
-## Usage
+### Usage
 
 ```bash
 ./create-drone-gh-app-secrets.sh <drone-server> <drone-token> <org/repo> <secrets.env>
@@ -69,7 +74,7 @@ Example:
   github-actions-secrets.env
 ```
 
-## Arguments
+### Arguments
 
 - `<drone-server>`: Drone server URL.
 - `<drone-token>`: Drone API token for a user with access to the repository.
@@ -77,3 +82,34 @@ Example:
 - `<secrets.env>`: Name of the env file in the same directory as the script.
 
 The script does not store the Drone server or token. Pass them in each time you run it.
+
+## Drone Cron Job
+
+> Only run this step once you've merged your feature code to main/master, as this cron will trigger the job each evening and will fail if the cron step in the drone file doesn't exist.
+
+Adding a cron job to Drone via the CLI is straight forward. Assuming you've followed the steps so far in this README and have already added the secrets successfully, you'll just need to export the DRONE_SERVER and DRONE_TOKEN locally in a terminal and then execute the CLI command.
+
+### Assumptions 
+
+1. You have the DRONE_SERVER value
+2. You have your DRONE_TOKEN value
+3. You have the drone cli tool installed 
+
+### Steps
+
+In your terminal, run the following:
+
+```bash
+# Export the DRONE values
+
+export DRONE_SERVER=<drone_server_address>
+export DRONE_TOKEN=<drone_token_value>
+
+# Run the drone command
+
+drone cron add <org>/<repo> nightly_e2e_playwright "0 0 18 * * *"
+
+# Example
+
+drone cron add UKHomeOffice/hff nightly_e2e_playwright "0 0 18 * * *"
+```
