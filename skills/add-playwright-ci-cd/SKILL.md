@@ -102,10 +102,17 @@ If required inputs are missing, stop and report missing fields explicitly.
 6. Deploy artifact handoff requirement:
       - Ensure deploy script writes branch host artifact to `/root/.dockersock/branch_url.txt` when dockersock exists. Branch host must contain `internal` so the tests target the internally deployed service.
 
-7. Update node image in use to `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc` if it hasn't already been done
-      - Check the following files; 
-            - Dockerfile
-            - .drone.yml or .drone.yaml
+7. Exhaustively update Node container images to `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc` if they have not already been updated.
+      - Check every Node image reference in the target repo, at minimum:
+            - `Dockerfile`
+            - `.drone.yml` or `.drone.yaml`
+      - Replace all old Node image references, not only the first match. Services may contain mixed Node versions across Dockerfile and Drone anchors, steps, scanner variables, or comments.
+      - Treat these as replace targets when they appear in Dockerfile or Drone YAML image fields/values:
+            - `quay.io/ukhomeofficedigital/hof-nodejs:<tag>` with or without a digest
+            - `node:<tag>` with or without a digest
+      - Example old image that must be replaced wherever found: `quay.io/ukhomeofficedigital/hof-nodejs:20.20.2-alpine3.23@sha256:bcd17b68a0f1910f1670b07f6a47d1e2c28291bafc219807c494dc62b57ea25e`.
+      - If a reference is already exactly `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc`, leave it unchanged.
+      - After editing, search the checked files for remaining old Node image references and report any intentionally preserved references as warnings.
 
 8. Update node engine in package.json to `>=24.15.0 <25.0.0` if it hasn't already been done.
 
@@ -146,6 +153,10 @@ After edits, validate and report:
       - Drone Playwright image is `>=1.60.0`.
       - `@playwright/test` and `playwright` are pinned and aligned with CI runtime.
       - lockfile reflects the pinned versions (no unresolved drift).
+9. Node runtime compliance:
+      - `Dockerfile` and `.drone.yml`/`.drone.yaml` contain no remaining old `quay.io/ukhomeofficedigital/hof-nodejs:*` or stale `node:*` image references.
+      - Every Node runtime image reference in those files is `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc`, unless explicitly reported in `WARNINGS` with a reason.
+      - `package.json` `engines.node` is `>=24.15.0 <25.0.0`.
 
 ## Output Format
 
