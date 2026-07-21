@@ -114,7 +114,7 @@ If required inputs are missing, stop and report missing fields explicitly.
       - If a reference is already exactly `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc`, leave it unchanged.
       - After editing, search the checked files for remaining old Node image references and report any intentionally preserved references as warnings.
 
-8. Update node engine in package.json to `>=24.15.0 <25.0.0` if it hasn't already been done.
+8. Update node engine in package.json to `>=24.18.0 <25.0.0` if it hasn't already been done.
 
 ## Supporting Scripts
 
@@ -156,7 +156,7 @@ After edits, validate and report:
 9. Node runtime compliance:
       - `Dockerfile` and `.drone.yml`/`.drone.yaml` contain no remaining old `quay.io/ukhomeofficedigital/hof-nodejs:*` or stale `node:*` image references.
       - Every Node runtime image reference in those files is `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc`, unless explicitly reported in `WARNINGS` with a reason.
-      - `package.json` `engines.node` is `>=24.15.0 <25.0.0`.
+      - `package.json` `engines.node` is `>=24.18.0 <25.0.0`.
 
 ## Output Format
 
