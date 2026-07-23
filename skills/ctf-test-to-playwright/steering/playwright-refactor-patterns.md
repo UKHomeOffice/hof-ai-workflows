@@ -31,6 +31,12 @@
 -	Encapsulate all page interactions within page classes.
 -	Refactor common actions into reusable components or helper methods.
 -	Keep selectors and actions separated from test logic.
+-	Review all pages and identify any hardcoded test data.
+-	Create a constants-lib.ts file within the utility-helper folder.
+-	Centralise all test data values in the constants file, following the implementation used in LMR as a reference.
+-	Update the relevant .step.ts files to consume values from constants-lib.ts.
+-	Do not introduce test data dependencies into the page objects. Keep page objects generic.
+-   ensure all test data handling remains within the step layer consistent with the LMR approach.
 
 ## Selenium to Playwright Migration Rules:
 -	Use Playwright Test Framework (@playwright/test).
