@@ -54,6 +54,7 @@
 -	Replace alert handling with Playwright dialog handling.
 -	Replace tab/window handling with Playwright context/page APIs.
 -	Replace JavascriptExecutor usage with Playwright-native APIs wherever possible.
+-   Ensure that expected page title method is implemented for each pages
 
 ## Locator Strategy 
 ## Prioritize:
