@@ -26,10 +26,10 @@
 ## Page Object Model: Convert all Selenium Page Objects into Playwright Page Objects.
 ## Requirements:
 -	Follow the exact POM structure used in lmr e2e-tests.
--	Create all missing pages required for the UkViet journey.
+-	Create all pages.
 -	Ensure file names match page names.
--	Encapsulate all page interactions within page classes.
--	Refactor common actions into reusable components or helper methods.
+-	Encapsulate all page interactions/methods within page classes.
+-	Mirgated common methods used in hof-e2e-auto-tests and put it in base-page and reusable components or helper methods.
 -	Keep selectors and actions separated from test logic.
 -	Review all pages and identify any hardcoded test data.
 -	Create a constants-lib.ts file within the utility-helper folder.
