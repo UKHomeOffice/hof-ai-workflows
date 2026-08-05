@@ -105,6 +105,7 @@ diff_patch_path="${WORK_PATH}/diff.patch"
 prompt_path="${WORK_PATH}/prompt.md"
 payload_path="${WORK_PATH}/agent-task-payload.json"
 response_path="${WORK_PATH}/agent-task-response.json"
+api_error_path="${WORK_PATH}/agent-task-error.txt"
 
 git -C "${TARGET_WORKDIR}" diff --find-renames --stat "${effective_diff_base}" "${TARGET_SHA}" > "${diff_stat_path}"
 git -C "${TARGET_WORKDIR}" diff --find-renames --name-status "${effective_diff_base}" "${TARGET_SHA}" > "${diff_names_path}"
@@ -225,12 +226,44 @@ if model:
 payload_path.write_text(json.dumps(payload), encoding="utf-8")
 PY
 
-gh api \
+if ! gh api \
   --method POST \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   "/agents/repos/${TARGET_REPOSITORY}/tasks" \
-  --input "${payload_path}" > "${response_path}"
+  --input "${payload_path}" > "${response_path}" 2> "${api_error_path}"; then
+  {
+    echo "### Update Playwright tests"
+    echo
+    echo "Failed to start a Copilot cloud agent task for \`${TARGET_REPOSITORY}\`."
+    echo
+    echo "- Endpoint: \`POST /agents/repos/${TARGET_REPOSITORY}/tasks\`"
+    echo "- Base branch: \`${BASE_REF}\`"
+    echo "- Target SHA: \`${TARGET_SHA}\`"
+    echo "- Diff base SHA: \`${effective_diff_base}\`"
+    echo
+    if [[ -s "${api_error_path}" ]]; then
+      echo "GitHub CLI error:"
+      echo
+      echo '```text'
+      cat "${api_error_path}"
+      echo '```'
+      echo
+    fi
+    echo "For HTTP 403, check that \`COPILOT_AGENT_TOKEN\` is a supported user-to-server token, not \`GITHUB_TOKEN\` or a GitHub App installation token."
+  } >> "${SUMMARY_PATH}"
+
+  if grep -Eiq 'forbidden|HTTP 403' "${api_error_path}"; then
+    echo "::error::Copilot agent task API returned 403 Forbidden. COPILOT_AGENT_TOKEN must be a user-to-server token; GITHUB_TOKEN and GitHub App installation tokens are not supported. Confirm the token owner has access to ${TARGET_REPOSITORY}, Copilot cloud agent is enabled for the repository/org, and the token has contents, actions, issues, and pull request permissions required by the agent tasks API."
+  else
+    echo "::error::Failed to start Copilot cloud agent task for ${TARGET_REPOSITORY}."
+  fi
+
+  if [[ -s "${api_error_path}" ]]; then
+    cat "${api_error_path}" >&2
+  fi
+  exit 1
+fi
 
 task_id="$(python3 - "${response_path}" <<'PY'
 import json

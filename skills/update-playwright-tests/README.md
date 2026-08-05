@@ -61,6 +61,15 @@ Required. A user-to-server token that can call the Copilot agent tasks API for t
 - Copilot cloud agent,
 - repository contents, pull requests, actions, and issues as required by the agent task API.
 
+An HTTP 403 from `POST /agents/repos/<owner>/<repo>/tasks` means the token reached GitHub but is not authorised for Copilot agent task creation. Check that:
+
+- `COPILOT_AGENT_TOKEN` is not `GITHUB_TOKEN`,
+- `COPILOT_AGENT_TOKEN` is not a GitHub App installation token,
+- the token owner can access the target repository,
+- Copilot cloud agent is enabled for the target repository and organization,
+- organization SSO or token approval requirements have been satisfied,
+- token permissions include the repository access required by the Copilot agent tasks API.
+
 ### `HOF_AI_WORKFLOWS_TOKEN`
 
 Optional fallback token with read access to `UKHomeOffice/hof-ai-workflows`.
