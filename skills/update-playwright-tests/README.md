@@ -44,6 +44,7 @@ jobs:
       COPILOT_AGENT_TOKEN: ${{ secrets.COPILOT_AGENT_TOKEN }}
       HOF_AI_WORKFLOWS_APP_ID: ${{ secrets.HOF_AI_WORKFLOWS_APP_ID }}
       HOF_AI_WORKFLOWS_APP_PRIVATE_KEY: ${{ secrets.HOF_AI_WORKFLOWS_APP_PRIVATE_KEY }}
+      HOF_AI_WORKFLOWS_APP_INSTALLATION_ID: ${{ secrets.HOF_AI_WORKFLOWS_APP_INSTALLATION_ID }}
 ```
 
 For production use, pin both `uses` and `skill-ref` to a reviewed tag or commit SHA rather than `main`.
@@ -68,9 +69,17 @@ Prefer the GitHub App credentials below so the workflow generates a short-lived 
 
 ### `HOF_AI_WORKFLOWS_APP_ID`
 
-Optional GitHub App ID or client ID for an app installed on `UKHomeOffice/hof-ai-workflows`.
+Optional GitHub App ID for an app installation that can read `UKHomeOffice/hof-ai-workflows`.
 
 When supplied with `HOF_AI_WORKFLOWS_APP_PRIVATE_KEY`, the reusable workflow generates a short-lived installation token using `actions/create-github-app-token` and uses that token to checkout this repository.
+
+When supplied with `HOF_AI_WORKFLOWS_APP_PRIVATE_KEY` and `HOF_AI_WORKFLOWS_APP_INSTALLATION_ID`, the reusable workflow uses the supplied installation ID directly. This matches the existing Drone GitHub App token pattern and avoids a repository installation lookup against:
+
+```text
+GET /repos/UKHomeOffice/hof-ai-workflows/installation
+```
+
+The installation-ID token generation is implemented by the script-backed composite action at `.github/actions/create-github-app-installation-token`.
 
 ### `HOF_AI_WORKFLOWS_APP_PRIVATE_KEY`
 
@@ -82,7 +91,15 @@ The app only needs:
 - `Contents: Read-only`,
 - `Metadata: Read-only`.
 
-The installation ID used in Drone is not required by `actions/create-github-app-token`; the action resolves the installation from `owner: UKHomeOffice` and `repositories: hof-ai-workflows`.
+### `HOF_AI_WORKFLOWS_APP_INSTALLATION_ID`
+
+Optional GitHub App installation ID.
+
+Use this when reusing the same app credentials as Drone. For repositories in the `UKHomeOffice` org, this is expected to be the UKHomeOffice app installation ID, for example the value currently represented by the Drone `hof_ukho_gh_app_install_id` secret rather than the `UKHomeOfficeForms` installation used for cloning `hof-services-config`.
+
+The app installation must include `UKHomeOffice/hof-ai-workflows`. If the app is installed only on selected repositories, add `hof-ai-workflows` to that installation before running this workflow.
+
+If `HOF_AI_WORKFLOWS_APP_INSTALLATION_ID` is omitted, the workflow falls back to `actions/create-github-app-token` repository lookup. A 404 at `GET /repos/UKHomeOffice/hof-ai-workflows/installation` means the app identified by `HOF_AI_WORKFLOWS_APP_ID` and `HOF_AI_WORKFLOWS_APP_PRIVATE_KEY` is not installed on, or cannot see, `UKHomeOffice/hof-ai-workflows`.
 
 ## Reusable Workflow Inputs
 
