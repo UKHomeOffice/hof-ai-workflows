@@ -1,0 +1,104 @@
+name: Update Playwright tests
+
+on:
+  workflow_call:
+    inputs:
+      base-ref:
+        description: Base branch for the Copilot agent task.
+        required: false
+        type: string
+        default: main
+      skill-ref:
+        description: Ref in UKHomeOffice/hof-ai-workflows to load the update-playwright-tests skill from.
+        required: false
+        type: string
+        default: main
+      target-sha:
+        description: Commit SHA to analyse. Defaults to the workflow event SHA.
+        required: false
+        type: string
+        default: ""
+      diff-base-sha:
+        description: Base SHA for the changed range. Defaults to the push event before SHA, then falls back to target parent.
+        required: false
+        type: string
+        default: ""
+      create-pull-request:
+        description: Ask Copilot cloud agent to create a pull request when test changes are required.
+        required: false
+        type: boolean
+        default: true
+      copilot-model:
+        description: Optional Copilot cloud agent model override.
+        required: false
+        type: string
+        default: ""
+      diff-max-bytes:
+        description: Maximum diff size embedded in the prompt before falling back to diff summary plus agent-side recomputation.
+        required: false
+        type: string
+        default: "180000"
+    secrets:
+      COPILOT_AGENT_TOKEN:
+        description: User-to-server token for the Copilot agent tasks API. GITHUB_TOKEN is not supported.
+        required: true
+      HOF_AI_WORKFLOWS_TOKEN:
+        description: Optional token with read access to UKHomeOffice/hof-ai-workflows when the repository is private or internal.
+        required: false
+    outputs:
+      task-id:
+        description: Copilot cloud agent task id, when a task was started.
+        value: ${{ jobs.update-playwright-tests.outputs.task-id }}
+      task-url:
+        description: Copilot cloud agent task URL, when returned by the API.
+        value: ${{ jobs.update-playwright-tests.outputs.task-url }}
+      skipped:
+        description: Whether the workflow skipped before starting an agent task.
+        value: ${{ jobs.update-playwright-tests.outputs.skipped }}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  update-playwright-tests:
+    name: Start Playwright test update agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      task-id: ${{ steps.agent-task.outputs.task_id }}
+      task-url: ${{ steps.agent-task.outputs.task_url }}
+      skipped: ${{ steps.agent-task.outputs.skipped }}
+
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: target-repository
+          persist-credentials: false
+
+      - name: Checkout HOF AI workflows
+        uses: actions/checkout@v4
+        with:
+          repository: UKHomeOffice/hof-ai-workflows
+          ref: ${{ inputs.skill-ref }}
+          path: hof-ai-workflows
+          token: ${{ secrets.HOF_AI_WORKFLOWS_TOKEN || secrets.COPILOT_AGENT_TOKEN || github.token }}
+          persist-credentials: false
+
+      - name: Start Copilot agent task
+        id: agent-task
+        env:
+          GH_TOKEN: ${{ secrets.COPILOT_AGENT_TOKEN }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+          TARGET_WORKDIR: ${{ github.workspace }}/target-repository
+          SKILL_PATH: ${{ github.workspace }}/hof-ai-workflows/skills/update-playwright-tests/SKILL.md
+          BASE_REF: ${{ inputs.base-ref }}
+          TARGET_SHA: ${{ inputs.target-sha || github.sha }}
+          DIFF_BASE_SHA: ${{ inputs.diff-base-sha || github.event.before }}
+          CREATE_PULL_REQUEST: ${{ inputs.create-pull-request }}
+          COPILOT_MODEL: ${{ inputs.copilot-model }}
+          DIFF_MAX_BYTES: ${{ inputs.diff-max-bytes }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: bash "${GITHUB_WORKSPACE}/hof-ai-workflows/skills/update-playwright-tests/scripts/start-agent-task.sh"
