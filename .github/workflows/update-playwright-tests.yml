@@ -43,7 +43,13 @@ on:
         description: User-to-server token for the Copilot agent tasks API. GITHUB_TOKEN is not supported.
         required: true
       HOF_AI_WORKFLOWS_TOKEN:
-        description: Optional token with read access to UKHomeOffice/hof-ai-workflows when the repository is private or internal.
+        description: Optional token with read access to UKHomeOffice/hof-ai-workflows. Prefer GitHub App secrets where available.
+        required: false
+      HOF_AI_WORKFLOWS_APP_ID:
+        description: Optional GitHub App ID or client ID used to generate a short-lived token for UKHomeOffice/hof-ai-workflows checkout.
+        required: false
+      HOF_AI_WORKFLOWS_APP_PRIVATE_KEY:
+        description: Optional private key for the GitHub App used to generate a UKHomeOffice/hof-ai-workflows checkout token.
         required: false
     outputs:
       task-id:
@@ -69,6 +75,9 @@ jobs:
       task-id: ${{ steps.agent-task.outputs.task_id }}
       task-url: ${{ steps.agent-task.outputs.task_url }}
       skipped: ${{ steps.agent-task.outputs.skipped }}
+    env:
+      HAS_HOF_AI_WORKFLOWS_APP_ID: ${{ secrets.HOF_AI_WORKFLOWS_APP_ID != '' }}
+      HAS_HOF_AI_WORKFLOWS_APP_PRIVATE_KEY: ${{ secrets.HOF_AI_WORKFLOWS_APP_PRIVATE_KEY != '' }}
 
     steps:
       - name: Checkout target repository
@@ -78,13 +87,30 @@ jobs:
           path: target-repository
           persist-credentials: false
 
+      - name: Validate HOF AI workflows app credentials
+        if: ${{ env.HAS_HOF_AI_WORKFLOWS_APP_ID != env.HAS_HOF_AI_WORKFLOWS_APP_PRIVATE_KEY }}
+        run: |
+          echo "::error::HOF_AI_WORKFLOWS_APP_ID and HOF_AI_WORKFLOWS_APP_PRIVATE_KEY must be supplied together."
+          exit 1
+
+      - name: Generate HOF AI workflows token
+        id: hof-ai-workflows-token
+        if: ${{ env.HAS_HOF_AI_WORKFLOWS_APP_ID == 'true' && env.HAS_HOF_AI_WORKFLOWS_APP_PRIVATE_KEY == 'true' }}
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.HOF_AI_WORKFLOWS_APP_ID }}
+          private-key: ${{ secrets.HOF_AI_WORKFLOWS_APP_PRIVATE_KEY }}
+          owner: UKHomeOffice
+          repositories: hof-ai-workflows
+          permission-contents: read
+
       - name: Checkout HOF AI workflows
         uses: actions/checkout@v4
         with:
           repository: UKHomeOffice/hof-ai-workflows
           ref: ${{ inputs.skill-ref }}
           path: hof-ai-workflows
-          token: ${{ secrets.HOF_AI_WORKFLOWS_TOKEN || secrets.COPILOT_AGENT_TOKEN || github.token }}
+          token: ${{ steps.hof-ai-workflows-token.outputs.token || secrets.HOF_AI_WORKFLOWS_TOKEN || secrets.COPILOT_AGENT_TOKEN }}
           persist-credentials: false
 
       - name: Start Copilot agent task

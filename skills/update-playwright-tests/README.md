@@ -37,9 +37,13 @@ jobs:
     with:
       base-ref: main
       skill-ref: main
+      target-sha: ${{ github.sha }}
+      diff-base-sha: ${{ github.event.before }}
+      create-pull-request: true
     secrets:
       COPILOT_AGENT_TOKEN: ${{ secrets.COPILOT_AGENT_TOKEN }}
-      HOF_AI_WORKFLOWS_TOKEN: ${{ secrets.HOF_AI_WORKFLOWS_TOKEN }}
+      HOF_AI_WORKFLOWS_APP_ID: ${{ secrets.HOF_AI_WORKFLOWS_APP_ID }}
+      HOF_AI_WORKFLOWS_APP_PRIVATE_KEY: ${{ secrets.HOF_AI_WORKFLOWS_APP_PRIVATE_KEY }}
 ```
 
 For production use, pin both `uses` and `skill-ref` to a reviewed tag or commit SHA rather than `main`.
@@ -58,9 +62,27 @@ Required. A user-to-server token that can call the Copilot agent tasks API for t
 
 ### `HOF_AI_WORKFLOWS_TOKEN`
 
-Optional when this repository is publicly readable by the workflow. Required when `UKHomeOffice/hof-ai-workflows` is private or internal and the target repository's default `GITHUB_TOKEN` cannot read it.
+Optional fallback token with read access to `UKHomeOffice/hof-ai-workflows`.
 
-If `COPILOT_AGENT_TOKEN` already has read access to `UKHomeOffice/hof-ai-workflows`, it can also be used for this purpose.
+Prefer the GitHub App credentials below so the workflow generates a short-lived installation token instead of relying on a long-lived stored checkout token.
+
+### `HOF_AI_WORKFLOWS_APP_ID`
+
+Optional GitHub App ID or client ID for an app installed on `UKHomeOffice/hof-ai-workflows`.
+
+When supplied with `HOF_AI_WORKFLOWS_APP_PRIVATE_KEY`, the reusable workflow generates a short-lived installation token using `actions/create-github-app-token` and uses that token to checkout this repository.
+
+### `HOF_AI_WORKFLOWS_APP_PRIVATE_KEY`
+
+Optional private key for the GitHub App identified by `HOF_AI_WORKFLOWS_APP_ID`.
+
+The app only needs:
+
+- repository access to `UKHomeOffice/hof-ai-workflows`,
+- `Contents: Read-only`,
+- `Metadata: Read-only`.
+
+The installation ID used in Drone is not required by `actions/create-github-app-token`; the action resolves the installation from `owner: UKHomeOffice` and `repositories: hof-ai-workflows`.
 
 ## Reusable Workflow Inputs
 
