@@ -1,0 +1,40 @@
+name: Create GitHub App installation token
+description: Create a short-lived GitHub App installation token from a known installation ID.
+
+inputs:
+  app-id:
+    description: Numeric GitHub App ID.
+    required: true
+  private-key:
+    description: GitHub App private key.
+    required: true
+  installation-id:
+    description: Numeric GitHub App installation ID.
+    required: true
+  repositories:
+    description: Comma or newline separated repositories to scope the token to.
+    required: false
+    default: ""
+  permissions:
+    description: JSON object of token permissions.
+    required: false
+    default: "{}"
+
+outputs:
+  token:
+    description: GitHub App installation token.
+    value: ${{ steps.create-token.outputs.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create installation token
+      id: create-token
+      shell: bash
+      env:
+        GITHUB_APP_ID: ${{ inputs.app-id }}
+        GITHUB_APP_PRIVATE_KEY: ${{ inputs.private-key }}
+        GITHUB_APP_INSTALLATION_ID: ${{ inputs.installation-id }}
+        TOKEN_REPOSITORIES: ${{ inputs.repositories }}
+        TOKEN_PERMISSIONS: ${{ inputs.permissions }}
+      run: bash "${GITHUB_ACTION_PATH}/create-token.sh"
