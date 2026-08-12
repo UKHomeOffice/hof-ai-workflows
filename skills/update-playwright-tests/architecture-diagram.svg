@@ -1,0 +1,302 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Agentic Playwright Test Generation Workflow Architecture</title>
+  <desc id="desc">Numbered left-to-right architecture diagram for the reusable GitHub Actions and Copilot cloud agent workflow that updates Playwright tests only when coverage changes are required.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 34px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 18px Arial, Helvetica, sans-serif; fill: #475569; }
+      .section-label { font: 700 13px Arial, Helvetica, sans-serif; fill: #475569; letter-spacing: .08em; }
+      .container-title { font: 700 18px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .label { font: 700 14px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .body { font: 400 13px Arial, Helvetica, sans-serif; fill: #334155; }
+      .caption { font: 400 12px Arial, Helvetica, sans-serif; fill: #64748b; }
+      .num { font: 700 13px Arial, Helvetica, sans-serif; fill: #ffffff; }
+      .container { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+      .external { fill: #e0f2fe; stroke: #0284c7; stroke-width: 2; }
+      .workflow { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.6; }
+      .agent { fill: #ede9fe; stroke: #7c3aed; stroke-width: 1.6; }
+      .repo { fill: #ecfdf5; stroke: #059669; stroke-width: 1.6; }
+      .validation { fill: #fff7ed; stroke: #ea580c; stroke-width: 1.6; }
+      .report { fill: #f0fdfa; stroke: #0f766e; stroke-width: 1.6; }
+      .error { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.6; }
+      .decision { fill: #fef3c7; stroke: #d97706; stroke-width: 2; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .arrow-blue { fill: none; stroke: #2563eb; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-blue); }
+      .arrow-red { fill: none; stroke: #dc2626; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-red); }
+      .arrow-dashed { fill: none; stroke: #64748b; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+      .arrow-red-dashed { fill: none; stroke: #dc2626; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 8 7; marker-end: url(#arrow-red); }
+      .shadow { filter: drop-shadow(0 10px 18px rgba(15, 23, 42, .08)); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1920" height="1080"/>
+
+  <text class="title" x="60" y="58">Agentic Playwright Test Generation Workflow</text>
+  <text class="subtitle" x="60" y="91">Numbered flow for reusable GitHub Actions orchestration, Copilot cloud agent analysis, conditional Playwright updates, validation, and human review.</text>
+
+  <!-- Containers -->
+  <g class="shadow">
+    <rect class="container" x="50" y="140" width="260" height="700" rx="24"/>
+    <text class="section-label" x="80" y="178">TARGET REPOSITORY</text>
+    <text class="container-title" x="80" y="207">Caller context</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="container" x="340" y="140" width="360" height="700" rx="24"/>
+    <text class="section-label" x="375" y="178">ORCHESTRATION LAYER</text>
+    <text class="container-title" x="375" y="207">Reusable workflow</text>
+    <text class="caption" x="375" y="229">UKHomeOffice/hof-ai-workflows</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="container" x="730" y="140" width="570" height="700" rx="24"/>
+    <text class="section-label" x="765" y="178">COPILOT CLOUD AGENT TASK</text>
+    <text class="container-title" x="765" y="207">Skill-driven agentic process</text>
+    <text class="caption" x="765" y="229">Logical roles inside one Copilot cloud agent task</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="container" x="1330" y="140" width="540" height="700" rx="24"/>
+    <text class="section-label" x="1365" y="178">SYSTEMS, OUTPUTS AND REVIEW</text>
+    <text class="container-title" x="1365" y="207">Repository, validation and results</text>
+  </g>
+
+  <!-- Target repository column -->
+  <g class="shadow">
+    <rect class="external" x="80" y="245" width="200" height="112" rx="16"/>
+    <circle cx="100" cy="267" r="15" fill="#0284c7"/>
+    <text class="num" text-anchor="middle" x="100" y="272">1</text>
+    <text class="label" x="126" y="270">User / Trigger</text>
+    <text class="body" x="104" y="300">Merge to main</text>
+    <text class="body" x="104" y="323">Target repo push event</text>
+    <text class="body" x="104" y="346">Caller workflow runs</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="repo" x="80" y="520" width="200" height="128" rx="16"/>
+    <text class="label" x="104" y="552">Repository assets</text>
+    <text class="body" x="104" y="580">Source code</text>
+    <text class="body" x="104" y="603">Playwright config</text>
+    <text class="body" x="104" y="626">Existing tests</text>
+  </g>
+
+  <!-- Orchestration column -->
+  <g class="shadow">
+    <rect class="workflow" x="380" y="215" width="280" height="82" rx="14"/>
+    <circle cx="402" cy="238" r="15" fill="#2563eb"/>
+    <text class="num" text-anchor="middle" x="402" y="243">2</text>
+    <text class="label" x="428" y="242">Checkout repositories</text>
+    <text class="body" x="404" y="269">Target repo plus workflow skill</text>
+    <text class="body" x="404" y="289">Uses app checkout token</text>
+  </g>
+
+  <g class="shadow">
+    <polygon class="decision" points="520,322 650,382 520,442 390,382"/>
+    <circle cx="421" cy="348" r="15" fill="#d97706"/>
+    <text class="num" text-anchor="middle" x="421" y="353">3</text>
+    <text class="label" text-anchor="middle" x="520" y="371">Preflight gate</text>
+    <text class="body" text-anchor="middle" x="520" y="394">Playwright marker</text>
+    <text class="body" text-anchor="middle" x="520" y="415">and valid diff?</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="workflow" x="380" y="495" width="280" height="82" rx="14"/>
+    <circle cx="402" cy="518" r="15" fill="#2563eb"/>
+    <text class="num" text-anchor="middle" x="402" y="523">4</text>
+    <text class="label" x="428" y="522">Build prompt + payload</text>
+    <text class="body" x="404" y="549">Skill, diff, changed files</text>
+    <text class="body" x="404" y="569">Guardrails and PR rules</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="workflow" x="380" y="630" width="280" height="92" rx="14"/>
+    <circle cx="402" cy="653" r="15" fill="#2563eb"/>
+    <text class="num" text-anchor="middle" x="402" y="658">5</text>
+    <text class="label" x="428" y="657">Start agent task</text>
+    <text class="body" x="404" y="684">User-to-server token</text>
+    <text class="body" x="404" y="704">create_pull_request=false</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="error" x="380" y="752" width="280" height="58" rx="14"/>
+    <text class="label" x="404" y="779">Skip or API error</text>
+    <text class="body" x="404" y="801">Summary includes token guidance</text>
+  </g>
+
+  <!-- Agent column -->
+  <g class="shadow">
+    <rect class="agent" x="780" y="215" width="220" height="96" rx="14"/>
+    <circle cx="802" cy="238" r="15" fill="#7c3aed"/>
+    <text class="num" text-anchor="middle" x="802" y="243">6</text>
+    <text class="label" x="828" y="242">Analysis Agent</text>
+    <text class="body" x="804" y="271">Recompute authoritative diff</text>
+    <text class="body" x="804" y="294">Discover Playwright assets</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="agent" x="1030" y="215" width="220" height="96" rx="14"/>
+    <circle cx="1052" cy="238" r="15" fill="#7c3aed"/>
+    <text class="num" text-anchor="middle" x="1052" y="243">7</text>
+    <text class="label" x="1078" y="242">Planning Agent</text>
+    <text class="body" x="1054" y="271">Map change to coverage</text>
+    <text class="body" x="1054" y="294">Prefer no action if unsure</text>
+  </g>
+
+  <g class="shadow">
+    <polygon class="decision" points="1015,337 1160,407 1015,477 870,407"/>
+    <circle cx="904" cy="367" r="15" fill="#d97706"/>
+    <text class="num" text-anchor="middle" x="904" y="372">8</text>
+    <text class="label" text-anchor="middle" x="1015" y="395">Coverage gap?</text>
+    <text class="body" text-anchor="middle" x="1015" y="418">User-facing and</text>
+    <text class="body" text-anchor="middle" x="1015" y="439">not already covered</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="agent" x="780" y="545" width="220" height="96" rx="14"/>
+    <circle cx="802" cy="568" r="15" fill="#7c3aed"/>
+    <text class="num" text-anchor="middle" x="802" y="573">9</text>
+    <text class="label" x="828" y="572">Generation Agent</text>
+    <text class="body" x="804" y="601">Smallest Playwright</text>
+    <text class="body" x="804" y="624">test change required</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="agent" x="1030" y="545" width="220" height="96" rx="14"/>
+    <circle cx="1052" cy="568" r="15" fill="#7c3aed"/>
+    <text class="num" text-anchor="middle" x="1052" y="573">10</text>
+    <text class="label" x="1078" y="572">Validation Agent</text>
+    <text class="body" x="1054" y="601">Run smallest checks</text>
+    <text class="body" x="1054" y="624">Fix generated failures</text>
+  </g>
+
+  <g class="shadow">
+    <polygon class="decision" points="1015,675 1165,745 1015,815 865,745"/>
+    <circle cx="900" cy="705" r="15" fill="#d97706"/>
+    <text class="num" text-anchor="middle" x="900" y="710">11</text>
+    <text class="label" text-anchor="middle" x="1015" y="728">Valid, non-empty</text>
+    <text class="label" text-anchor="middle" x="1015" y="749">Playwright test</text>
+    <text class="label" text-anchor="middle" x="1015" y="770">changes?</text>
+  </g>
+
+  <!-- Systems and outputs column -->
+  <g class="shadow">
+    <rect class="repo" x="1360" y="235" width="250" height="120" rx="14"/>
+    <text class="label" x="1385" y="265">Repository / Source Code</text>
+    <text class="body" x="1385" y="293">Source, config and tests</text>
+    <text class="body" x="1385" y="316">PR branch when required</text>
+    <text class="body" x="1385" y="339">No automatic merge</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="validation" x="1360" y="520" width="250" height="96" rx="14"/>
+    <text class="label" x="1385" y="551">Test Execution Layer</text>
+    <text class="body" x="1385" y="579">Lint, TypeScript checks</text>
+    <text class="body" x="1385" y="599">Playwright tests if feasible</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="repo" x="1360" y="655" width="250" height="78" rx="14"/>
+    <circle cx="1382" cy="678" r="15" fill="#059669"/>
+    <text class="num" text-anchor="middle" x="1382" y="683">12</text>
+    <text class="label" x="1408" y="682">Repository update</text>
+    <text class="body" x="1385" y="711">Commit and PR when required</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="report" x="1360" y="762" width="250" height="64" rx="14"/>
+    <text class="label" x="1385" y="790">Reporting / Results</text>
+    <text class="body" x="1385" y="812">No-action, failure or PR link</text>
+  </g>
+
+  <g class="shadow">
+    <rect class="external" x="1650" y="665" width="180" height="132" rx="16"/>
+    <text class="label" text-anchor="middle" x="1740" y="700">Final Output</text>
+    <text class="body" text-anchor="middle" x="1740" y="730">Human developer</text>
+    <text class="body" text-anchor="middle" x="1740" y="753">or QAT review</text>
+    <text class="body" text-anchor="middle" x="1740" y="776">before merge</text>
+  </g>
+
+  <!-- Primary flow arrows -->
+  <path class="arrow-blue" d="M 280 301 H 380"/>
+  <path class="arrow" d="M 520 297 V 322"/>
+  <path class="arrow" d="M 520 442 V 495"/>
+  <path class="arrow" d="M 520 577 V 630"/>
+  <path class="arrow-blue" d="M 660 676 H 714 V 263 H 780"/>
+
+  <path class="arrow" d="M 1000 263 H 1030"/>
+  <path class="arrow" d="M 1140 311 V 326 H 1015 V 337"/>
+  <path class="arrow" d="M 1015 477 V 510 H 890 V 545"/>
+  <path class="arrow" d="M 1000 593 H 1030"/>
+  <path class="arrow" d="M 1140 641 V 658 H 1015 V 675"/>
+  <path class="arrow-blue" d="M 1165 745 H 1310 V 694 H 1360"/>
+  <path class="arrow" d="M 1485 733 V 762"/>
+  <path class="arrow-blue" d="M 1610 694 H 1650"/>
+  <path class="arrow" d="M 1610 794 H 1630 V 748 H 1650"/>
+
+  <!-- Data, validation and feedback arrows -->
+  <path class="arrow-dashed" d="M 1360 295 H 1250"/>
+  <text class="caption" x="1260" y="320">read source/tests</text>
+  <path class="arrow-dashed" d="M 280 584 H 325 V 256 H 380"/>
+  <path class="arrow-blue" d="M 1250 593 H 1360"/>
+  <path class="arrow-dashed" d="M 1360 606 H 1250"/>
+  <path class="arrow-red-dashed" d="M 865 745 H 744 V 593 H 780"/>
+  <path class="arrow" d="M 1160 407 H 1310 V 794 H 1360"/>
+  <path class="arrow-red-dashed" d="M 1015 815 V 862 H 1310 V 812 H 1360"/>
+
+  <!-- Error paths -->
+  <path class="arrow-red-dashed" d="M 390 382 H 332 V 781 H 380"/>
+  <path class="arrow-red-dashed" d="M 660 704 H 714 V 781 H 660"/>
+
+  <!-- Arrow labels -->
+  <text class="caption" x="335" y="292">invoke</text>
+  <text class="caption" x="527" y="468">yes</text>
+  <text class="caption" x="342" y="372">no</text>
+  <text class="caption" x="1023" y="504">yes</text>
+  <text class="caption" x="1180" y="398">no coverage gap</text>
+  <text class="caption" x="761" y="734">fix and retry</text>
+  <text class="caption" x="1185" y="735">yes</text>
+  <text class="caption" x="1030" y="855">no / unresolved</text>
+
+  <!-- Legend -->
+  <g class="shadow">
+    <rect class="container" x="50" y="880" width="1820" height="138" rx="20"/>
+    <text class="container-title" x="80" y="916">Legend and key controls</text>
+
+    <rect class="workflow" x="80" y="944" width="24" height="24" rx="5"/>
+    <text class="caption" x="116" y="961">Reusable workflow tools</text>
+
+    <rect class="agent" x="292" y="944" width="24" height="24" rx="5"/>
+    <text class="caption" x="328" y="961">Copilot agent role</text>
+
+    <rect class="repo" x="474" y="944" width="24" height="24" rx="5"/>
+    <text class="caption" x="510" y="961">Repository or data store</text>
+
+    <rect class="validation" x="704" y="944" width="24" height="24" rx="5"/>
+    <text class="caption" x="740" y="961">Validation stage</text>
+
+    <polygon class="decision" points="930,943 948,956 930,969 912,956"/>
+    <text class="caption" x="964" y="961">Decision gate</text>
+
+    <line class="arrow-blue" x1="80" y1="994" x2="138" y2="994"/>
+    <text class="caption" x="154" y="999">Primary flow</text>
+
+    <line class="arrow-dashed" x1="292" y1="994" x2="350" y2="994"/>
+    <text class="caption" x="366" y="999">Read, result or feedback path</text>
+
+    <line class="arrow-red-dashed" x1="564" y1="994" x2="622" y2="994"/>
+    <text class="caption" x="638" y="999">Skip, retry or failure path</text>
+
+    <text class="caption" x="912" y="999">Controls: no API-level automatic PR creation, no empty commit or PR, human review required before merge.</text>
+  </g>
+</svg>

@@ -14,6 +14,10 @@ The target repository keeps a small caller workflow. The caller invokes the reus
 6. The skill decides whether coverage needs to be added, amended, or left unchanged.
 7. If test changes are needed, Copilot commits them and opens a pull request for human developer or QAT review.
 
+## Architecture
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the end-to-end architecture, component responsibilities, decision points, data flow, error handling, and architecture diagram.
+
 ## Target Repository Caller Workflow
 
 Add this workflow to each target repository that should run the automation:
