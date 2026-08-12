@@ -140,6 +140,8 @@ After modifying tests:
 
 If no coverage gap is identified:
 
+- Do not create a branch.
+- Do not create an empty commit.
 - Do not create a pull request.
 - Produce a report summarising:
   - Files analysed
@@ -148,13 +150,17 @@ If no coverage gap is identified:
 If a coverage gap is identified:
 
 1. Create a branch.
-2. Commit changes using the Git Commit Policy.
-3. Create a pull request using `pull-request-template.md`.
-4. Include:
+2. Update or add the required Playwright test files.
+3. Verify the working tree contains non-empty test changes before committing.
+4. Commit changes using the Git Commit Policy.
+5. Create a pull request using `pull-request-template.md`.
+6. Include:
    - The functional change detected
    - Why additional coverage was required
    - A summary of new or updated tests
    - Any assumptions made
+
+Never create a pull request with no file changes, no test changes, or only an empty commit.
 
 ---
 

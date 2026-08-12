@@ -24,7 +24,7 @@ on:
         type: string
         default: ""
       create-pull-request:
-        description: Ask Copilot cloud agent to create a pull request when test changes are required.
+        description: Allow Copilot cloud agent to create a pull request only after it commits required test changes.
         required: false
         type: boolean
         default: true
@@ -40,7 +40,7 @@ on:
         default: "180000"
     secrets:
       COPILOT_AGENT_TOKEN:
-        description: User-to-server token for the Copilot agent tasks API. GITHUB_TOKEN is not supported.
+        description: User-to-server token for the Copilot agent tasks API with Agent tasks read/write access. GITHUB_TOKEN is not supported.
         required: true
       HOF_AI_WORKFLOWS_TOKEN:
         description: Optional token with read access to UKHomeOffice/hof-ai-workflows. Prefer GitHub App secrets where available.

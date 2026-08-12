@@ -178,3 +178,7 @@ After edits, validate:
 ## Required Drone Secrets
 
 See [creating drone secrets](./scripts/README.md) for detail on how to add the required CICD secrets into Drone for a given service.
+
+## GitHub App Token Flow
+
+See [GitHub App token flow](./github-app-token-flow.md) for the end-to-end authentication model used by the Playwright automation workflows, including the difference between GitHub App installation tokens and GitHub App user access tokens.
