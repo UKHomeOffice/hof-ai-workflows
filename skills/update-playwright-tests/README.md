@@ -14,6 +14,10 @@ The target repository keeps a small caller workflow. The caller invokes the reus
 6. The skill decides whether coverage needs to be added, amended, or left unchanged.
 7. If test changes are needed, Copilot commits them and opens a pull request for human developer or QAT review.
 
+## Architecture
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the end-to-end architecture, component responsibilities, decision points, data flow, error handling, and architecture diagram.
+
 ## Target Repository Caller Workflow
 
 Add this workflow to each target repository that should run the automation:
@@ -59,14 +63,18 @@ Required. A user-to-server token that can call the Copilot agent tasks API for t
 
 - the target repository,
 - Copilot cloud agent,
-- repository contents, pull requests, actions, and issues as required by the agent task API.
+- `Agent tasks: Read and write` repository permission,
+- repository contents, pull requests, actions, and issues needed by the Copilot agent to inspect, branch, commit, and open a pull request.
 
 An HTTP 403 from `POST /agents/repos/<owner>/<repo>/tasks` means the token reached GitHub but is not authorised for Copilot agent task creation. Check that:
 
 - `COPILOT_AGENT_TOKEN` is not `GITHUB_TOKEN`,
 - `COPILOT_AGENT_TOKEN` is not a GitHub App installation token,
+- the token includes `Agent tasks: Read and write` repository permission,
 - the token owner can access the target repository,
+- the token owner has a Copilot Business or Enterprise subscription,
 - Copilot cloud agent is enabled for the target repository and organization,
+- any GitHub App permission changes have been approved on the installation and the user access token was regenerated afterwards,
 - organization SSO or token approval requirements have been satisfied,
 - token permissions include the repository access required by the Copilot agent tasks API.
 
@@ -118,7 +126,7 @@ If `HOF_AI_WORKFLOWS_APP_INSTALLATION_ID` is omitted, the workflow falls back to
 | `skill-ref` | `main` | Ref in `UKHomeOffice/hof-ai-workflows` to load the skill from. Pin this in production. |
 | `target-sha` | workflow event SHA | Commit SHA to analyse. |
 | `diff-base-sha` | push event `before`, then target parent | Base SHA for the changed range. |
-| `create-pull-request` | `true` | Tells Copilot cloud agent to open a PR if test changes are required. |
+| `create-pull-request` | `true` | Allows Copilot cloud agent to open a PR only after it has committed required test changes. The workflow does not use GitHub's API-level automatic PR creation, to avoid empty PRs when no coverage change is required. |
 | `copilot-model` | empty | Optional Copilot model override. |
 | `diff-max-bytes` | `180000` | Maximum diff size embedded directly in the prompt. Larger diffs are summarised and recomputed by the agent. |
 
@@ -135,7 +143,7 @@ When it does start Copilot, the generated prompt includes:
 - the full diff when below `diff-max-bytes`,
 - instructions to recompute the authoritative diff in the agent environment.
 
-The agent is instructed to make no changes and open no PR when there is no user-facing Playwright coverage gap. When changes are needed, it must create the smallest conventional Playwright test update, validate it where feasible, commit with `test: <summary>`, and leave the PR for human review.
+The workflow intentionally starts the Copilot task with API-level `create_pull_request=false`. This prevents GitHub from creating an empty PR before the agent has analysed the diff. The agent is instructed to make no changes and open no PR when there is no user-facing Playwright coverage gap. When changes are needed and `create-pull-request` is `true`, it must create the smallest conventional Playwright test update, validate it where feasible, commit with `test: <summary>`, and open a PR for human review.
 
 ## Human Review
 

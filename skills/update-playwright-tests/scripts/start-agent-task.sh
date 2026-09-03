@@ -132,6 +132,8 @@ target_sha = os.environ["TARGET_SHA"]
 effective_diff_base = os.environ["EFFECTIVE_DIFF_BASE"]
 base_ref = os.environ.get("BASE_REF", "main")
 github_event_name = os.environ.get("GITHUB_EVENT_NAME", "unknown")
+create_pull_request = os.environ.get("CREATE_PULL_REQUEST", "true").strip().lower() == "true"
+pull_request_mode = "enabled" if create_pull_request else "disabled"
 
 if include_full_diff:
     diff_section = f"""## Authoritative diff supplied by workflow
@@ -172,6 +174,7 @@ Use the following agent skill as the mandatory process for this task.
 - Diff base SHA: `{effective_diff_base}`
 - Diff command: `git diff --find-renames {effective_diff_base} {target_sha}`
 - GitHub event that started the workflow: `{github_event_name}`
+- Pull request creation requested by workflow input: `{str(create_pull_request).lower()}`
 - The workflow preflight found an existing Playwright marker before starting this task.
 
 ## Required execution rules for this automation
@@ -179,12 +182,14 @@ Use the following agent skill as the mandatory process for this task.
 1. Work only in `{target_repository}`.
 2. Recompute `git diff --find-renames {effective_diff_base} {target_sha}` in your agent environment and use that diff as the authoritative source of changed behaviour.
 3. Inspect the target repository for Playwright configuration, fixtures, helpers, page objects, and existing test conventions before editing tests.
-4. If there is no user-facing behavioural coverage gap, make no code changes and do not open a pull request. Report the files analysed and why no coverage update is required.
-5. If Playwright tests must be added or updated, make the smallest repository-conventional test change that covers the merged behaviour.
-6. Run the smallest available validation commands that cover the changed tests. If validation cannot run, explain the blocker in the pull request body.
-7. Commit required changes with a `test: <summary>` commit message.
-8. Open exactly one pull request only when test files were changed. Use `pull-request-template.md` if present; otherwise include the functional change, coverage rationale, test summary, assumptions, validation, and manual follow-up.
-9. Do not merge the pull request. Leave it for human developer or QAT review.
+4. The workflow intentionally started this task with GitHub API `create_pull_request=false` so that no empty pull request is created before your analysis is complete.
+5. If there is no user-facing behavioural coverage gap, make no code changes, create no branch, create no commit, and do not open a pull request. Report the files analysed and why no coverage update is required.
+6. If Playwright tests must be added or updated, make the smallest repository-conventional test change that covers the merged behaviour.
+7. Run the smallest available validation commands that cover the changed tests. If validation cannot run, explain the blocker in the pull request body when a pull request is opened.
+8. Before committing or opening any pull request, verify the working tree contains non-empty Playwright test changes. If there are no file changes, or no test files changed, stop and report no action required.
+9. Commit required changes with a `test: <summary>` commit message.
+10. Pull request creation is `{pull_request_mode}` for this run. If it is enabled, open exactly one pull request only after test files were changed and committed. Use `pull-request-template.md` if present; otherwise include the functional change, coverage rationale, test summary, assumptions, validation, and manual follow-up. If it is disabled, do not open a pull request.
+11. Do not merge the pull request. Leave it for human developer or QAT review.
 
 ## Changed files
 
@@ -216,7 +221,7 @@ payload_path = Path(sys.argv[2])
 payload = {
     "prompt": prompt_path.read_text(encoding="utf-8"),
     "base_ref": os.environ.get("BASE_REF", "main"),
-    "create_pull_request": os.environ.get("CREATE_PULL_REQUEST", "true").lower() == "true",
+    "create_pull_request": False,
 }
 
 model = os.environ.get("COPILOT_MODEL", "").strip()
@@ -229,7 +234,7 @@ PY
 if ! gh api \
   --method POST \
   -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
+  -H "X-GitHub-Api-Version: 2026-03-10" \
   "/agents/repos/${TARGET_REPOSITORY}/tasks" \
   --input "${payload_path}" > "${response_path}" 2> "${api_error_path}"; then
   {
@@ -250,11 +255,11 @@ if ! gh api \
       echo '```'
       echo
     fi
-    echo "For HTTP 403, check that \`COPILOT_AGENT_TOKEN\` is a supported user-to-server token, not \`GITHUB_TOKEN\` or a GitHub App installation token."
+    echo "For HTTP 403, check that \`COPILOT_AGENT_TOKEN\` is a supported user-to-server token, not \`GITHUB_TOKEN\` or a GitHub App installation token, and that it has \`Agent tasks: Read and write\` repository permission."
   } >> "${SUMMARY_PATH}"
 
   if grep -Eiq 'forbidden|HTTP 403' "${api_error_path}"; then
-    echo "::error::Copilot agent task API returned 403 Forbidden. COPILOT_AGENT_TOKEN must be a user-to-server token; GITHUB_TOKEN and GitHub App installation tokens are not supported. Confirm the token owner has access to ${TARGET_REPOSITORY}, Copilot cloud agent is enabled for the repository/org, and the token has contents, actions, issues, and pull request permissions required by the agent tasks API."
+    echo "::error::Copilot agent task API returned 403 Forbidden. COPILOT_AGENT_TOKEN must be a user-to-server token with Agent tasks read/write repository permission; GITHUB_TOKEN and GitHub App installation tokens are not supported. Confirm the token owner has access to ${TARGET_REPOSITORY}, has a Copilot Business or Enterprise subscription, Copilot cloud agent is enabled for the repository/org, and any GitHub App permission changes were approved and followed by regenerating the user access token."
   else
     echo "::error::Failed to start Copilot cloud agent task for ${TARGET_REPOSITORY}."
   fi
