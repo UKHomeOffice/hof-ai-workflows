@@ -3,7 +3,7 @@
 ## Implementation Requirements
 ## Project Structure
 -	Use the "lmr e2e-tests" project as the source of truth for framework implementation.
--	Create a new folder called "e2e-tests" in 'end-tenancy' folder.
+-	Create a new folder called "e2e-tests".
 -	Replicate the structure, patterns, fixtures, utilities, helpers, and conventions used within lmr e2e-tests.
 -	Generate all required files, folders, page objects, feature files, step definitions, fixtures, helpers, constants, and test data classes.
 -	Ensure all generated files follow consistent naming standards and match the functionality they represent.
