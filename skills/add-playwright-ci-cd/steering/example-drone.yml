@@ -12,7 +12,6 @@ environment:
   HOF_CONFIG: hof-services-config/Example
   NON_PROD_AVAILABILITY: Mon-Fri 08:00-23:00 Europe/London
   READY_FOR_TEST_DELAY: 20s
-  NIGHTLY_E2E_BASE_URL: example.internal.uat.sas-notprod.homeoffice.gov.uk
 
 include_default_branch: &include_default_branch
   include:
@@ -23,13 +22,15 @@ include_default_and_feature_branches: &include_default_and_feature_branches
     - master
     - feature/*
 
+node_image_name: &node_image_name quay.io/ukhomeofficedigital/hof-nodejs:24.19.0-alpine3.24-v3@sha256:20887d4a5a15886deb9653e96dc4393b10ad9c70cd8d134a43da6cee7ddd45f3
+
 trigger:
   branch:
     <<: *include_default_and_feature_branches
 
 node_image: &node_image
   pull: if-not-exists
-  image: node:24.15.0-alpine3.23@sha256:8e2c930fda481a6ec141fe5a88e8c249c69f8102fe98af505f38c081649ea749
+  image: *node_image_name
 
 linting: &linting
   <<: *node_image
@@ -53,7 +54,7 @@ sonar_scanner: &sonar_scanner
 
 github_app_token_step: &github_app_token_step
   pull: if-not-exists
-  image: alpine:3.21
+  image: *node_image_name
   volumes:
     - name: dockersock
       path: /root/.dockersock
@@ -175,6 +176,23 @@ steps:
       - linting
       - unit_tests
 
+  - name: image_to_quay
+    pull: if-not-exists
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+    environment:
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+    commands:
+      - docker login -u="ukhomeofficedigital+$${IMAGE_REPO}" -p=$${DOCKER_PASSWORD} quay.io
+      - docker tag $${IMAGE_REPO}:$${DRONE_COMMIT_SHA} $${IMAGE_URL}/$${IMAGE_REPO}:$${DRONE_COMMIT_SHA}
+      - docker push $${IMAGE_URL}/$${IMAGE_REPO}:$${DRONE_COMMIT_SHA}
+    when:
+      branch:
+        <<: *include_default_and_feature_branches
+      event: [push, pull_request]
+    depends_on:
+      - build_image
+
   # Trivy Security Scannner for scanning OS related vulnerabilities in Base image of Dockerfile
   - name: scan_base_image_os
     pull: always
@@ -184,7 +202,7 @@ steps:
         cpu: 1000
         memory: 1024Mi
     environment:
-      IMAGE_NAME: node:24.15.0-alpine3.23@sha256:8e2c930fda481a6ec141fe5a88e8c249c69f8102fe98af505f38c081649ea749
+      IMAGE_NAME: *node_image_name
       SERVICE_URL: https://acp-trivy-helm.acp-trivy.svc.cluster.local:443
       SEVERITY: MEDIUM,HIGH,CRITICAL  --dependency-tree
       FAIL_ON_DETECTION: false
@@ -248,6 +266,9 @@ steps:
   - name: e2e_tests
     pull: if-not-exists
     image: mcr.microsoft.com/playwright:v1.60.0-noble
+    environment:
+      SAS_HOF_EMAIL:
+        from_secret: SAS_HOF_EMAIL
     volumes:
       - name: dockersock
         path: /root/.dockersock
@@ -279,7 +300,7 @@ steps:
   # Upload Playwright HTML report for PR and comment a download link
   - name: publish_e2e_report_to_pr
     pull: if-not-exists
-    image: alpine:3.21
+    image: *node_image_name
     volumes:
       - name: dockersock
         path: /root/.dockersock
@@ -307,8 +328,6 @@ steps:
     when:
       target: PROD
       event: promote
-    depends_on:
-      - sanity_check_build_prod
 
   - name: clone_repos_prod
     <<: *clone_repos_step
@@ -343,6 +362,17 @@ steps:
     depends_on:
       - generate_github_app_token_for_clone_cron
       
+  - name: cron_build_image
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+    commands:
+      - docker build --no-cache -t $${IMAGE_REPO}:$${DRONE_COMMIT_SHA} .
+    volumes:
+      - name: dockersock
+        path: /var/run
+    when:
+      cron: security_scans
+      event: cron
+
   - name: cron_trivy_scan_image_os
     image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/trivy/client:latest
     pull: always
@@ -406,6 +436,9 @@ steps:
   - name: cron_nightly_e2e_tests
     pull: if-not-exists
     image: mcr.microsoft.com/playwright:v1.60.0-noble
+    environment:
+      NIGHTLY_E2E_BASE_URL:
+        from_secret: NIGHTLY_E2E_BASE_URL    
     volumes:
       - name: dockersock
         path: /root/.dockersock
@@ -443,7 +476,7 @@ steps:
   # Slack notification for nightly E2E cron runs
   - name: cron_notify_slack_nightly_e2e
     pull: if-not-exists
-    image: alpine:3.21
+    image: *node_image_name
     environment:
       SLACK_WEBHOOK:
         from_secret: slack_sas_hof_e2e_tests_webhook

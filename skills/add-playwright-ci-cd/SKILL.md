@@ -86,7 +86,7 @@ If required inputs are missing, stop and report missing fields explicitly.
    - Ensure the `e2e_tests` Playwright container image is at least `v1.61.1`.
    - In `e2e_tests`, enforce commands:
      - `npm install -g n`
-     - `n 24.18.0`
+     - `n 24.19.0`
      - `hash -r`
      - `node --version`
      - `yarn install --frozen-lockfile`
@@ -106,7 +106,7 @@ If required inputs are missing, stop and report missing fields explicitly.
    - Use `bin/summarise_playwright_report.js` for stable text summary generation.
    - In nightly test step, include the same Node bootstrap commands before `yarn install --frozen-lockfile` to satisfy engines:
      - `npm install -g n`
-     - `n 24.18.0`
+     - `n 24.19.0`
      - `hash -r`
      - `node --version`
      - `yarn install --frozen-lockfile`
@@ -115,7 +115,7 @@ If required inputs are missing, stop and report missing fields explicitly.
 6. Deploy artifact handoff requirement:
    - Ensure deploy script writes branch host artifact to `/root/.dockersock/branch_url.txt` when dockersock exists. Branch host must contain `internal` so the tests target the internally deployed service.
 
-7. Exhaustively update Node container images to `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc` if they have not already been updated.
+7. Exhaustively update Node container images to `quay.io/ukhomeofficedigital/hof-nodejs:24.19.0-alpine3.24-v3@sha256:20887d4a5a15886deb9653e96dc4393b10ad9c70cd8d134a43da6cee7ddd45f3` if they have not already been updated.
    - Check every Node image reference in the target repo, at minimum:
      - `Dockerfile`
      - `.drone.yml` or `.drone.yaml`
@@ -124,10 +124,10 @@ If required inputs are missing, stop and report missing fields explicitly.
      - `quay.io/ukhomeofficedigital/hof-nodejs:<tag>` with or without a digest
      - `node:<tag>` with or without a digest
    - Example old image that must be replaced wherever found: `quay.io/ukhomeofficedigital/hof-nodejs:20.20.2-alpine3.23@sha256:bcd17b68a0f1910f1670b07f6a47d1e2c28291bafc219807c494dc62b57ea25e`.
-   - If a reference is already exactly `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc`, leave it unchanged.
+   - If a reference is already exactly `quay.io/ukhomeofficedigital/hof-nodejs:24.19.0-alpine3.24-v3@sha256:20887d4a5a15886deb9653e96dc4393b10ad9c70cd8d134a43da6cee7ddd45f3`, leave it unchanged.
    - After editing, search the checked files for remaining old Node image references and report any intentionally preserved references as warnings.
 
-8. Update node engine in package.json to `>=24.18.0 <25.0.0` if it hasn't already been done.
+8. Update node engine in package.json to `>=24.19.0 <25.0.0` if it hasn't already been done.
 
 ## Supporting Scripts
 
@@ -168,8 +168,8 @@ After edits, validate and report:
    - lockfile reflects the pinned versions (no unresolved drift).
 9. Node runtime compliance:
    - `Dockerfile` and `.drone.yml`/`.drone.yaml` contain no remaining old `quay.io/ukhomeofficedigital/hof-nodejs:*` or stale `node:*` image references.
-   - Every Node runtime image reference in those files is `node:24.18.0-alpine3.24@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc`, unless explicitly reported in `WARNINGS` with a reason.
-   - `package.json` `engines.node` is `>=24.18.0 <25.0.0`.
+   - Every Node runtime image reference in those files is `quay.io/ukhomeofficedigital/hof-nodejs:24.19.0-alpine3.24-v3@sha256:20887d4a5a15886deb9653e96dc4393b10ad9c70cd8d134a43da6cee7ddd45f3`, unless explicitly reported in `WARNINGS` with a reason.
+   - `package.json` `engines.node` is `>=24.19.0 <25.0.0`.
 
 ## Output Format
 
