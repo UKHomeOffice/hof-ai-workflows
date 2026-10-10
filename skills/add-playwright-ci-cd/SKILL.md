@@ -115,7 +115,7 @@ If required inputs are missing, stop and report missing fields explicitly.
 6. Deploy artifact handoff requirement:
    - Ensure deploy script writes branch host artifact to `/root/.dockersock/branch_url.txt` when dockersock exists. Branch host must contain `internal` so the tests target the internally deployed service.
 
-7. Exhaustively update Node container images to `quay.io/ukhomeofficedigital/hof-nodejs:24.21.0-alpine3.24-v6@sha256:965808f37507eef8947461acc32a1bb9109ef6867731c9751ff0145232633908` if they have not already been updated.
+7. Exhaustively update Node container images to `quay.io/ukhomeofficedigital/hof-nodejs:24.21.0-alpine3.24-v8@sha256:a0c438317862e595f45a51e7cb234a0c7e8c67aef2b886844d788dbe21c3b410` if they have not already been updated.
    - Check every Node image reference in the target repo, at minimum:
      - `Dockerfile`
      - `.drone.yml` or `.drone.yaml`
@@ -124,7 +124,7 @@ If required inputs are missing, stop and report missing fields explicitly.
      - `quay.io/ukhomeofficedigital/hof-nodejs:<tag>` with or without a digest
      - `node:<tag>` with or without a digest
    - Example old image that must be replaced wherever found: `quay.io/ukhomeofficedigital/hof-nodejs:20.20.2-alpine3.23@sha256:bcd17b68a0f1910f1670b07f6a47d1e2c28291bafc219807c494dc62b57ea25e`.
-   - If a reference is already exactly `quay.io/ukhomeofficedigital/hof-nodejs:24.21.0-alpine3.24-v6@sha256:965808f37507eef8947461acc32a1bb9109ef6867731c9751ff0145232633908`, leave it unchanged.
+   - If a reference is already exactly `quay.io/ukhomeofficedigital/hof-nodejs:24.21.0-alpine3.24-v8@sha256:a0c438317862e595f45a51e7cb234a0c7e8c67aef2b886844d788dbe21c3b410`, leave it unchanged.
    - After editing, search the checked files for remaining old Node image references and report any intentionally preserved references as warnings.
 
 8. Update node engine in package.json to `>=24.21.0 <25.0.0` if it hasn't already been done.
@@ -168,7 +168,7 @@ After edits, validate and report:
    - lockfile reflects the pinned versions (no unresolved drift).
 9. Node runtime compliance:
    - `Dockerfile` and `.drone.yml`/`.drone.yaml` contain no remaining old `quay.io/ukhomeofficedigital/hof-nodejs:*` or stale `node:*` image references.
-   - Every Node runtime image reference in those files is `quay.io/ukhomeofficedigital/hof-nodejs:24.21.0-alpine3.24-v6@sha256:965808f37507eef8947461acc32a1bb9109ef6867731c9751ff0145232633908`, unless explicitly reported in `WARNINGS` with a reason.
+   - Every Node runtime image reference in those files is `quay.io/ukhomeofficedigital/hof-nodejs:24.21.0-alpine3.24-v8@sha256:a0c438317862e595f45a51e7cb234a0c7e8c67aef2b886844d788dbe21c3b410`, unless explicitly reported in `WARNINGS` with a reason.
    - `package.json` `engines.node` is `>=24.21.0 <25.0.0`.
 
 ## Output Format
