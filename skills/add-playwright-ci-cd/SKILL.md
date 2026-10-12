@@ -59,9 +59,9 @@ If required inputs are missing, stop and report missing fields explicitly.
 3. Keep existing branch/event trigger policy unless explicitly instructed to change it.
 4. Preserve existing non-e2e pipeline behavior.
 5. Fail fast on missing required secrets/token files.
-6. Minimum Playwright version is `1.61.1` for CI wiring produced by this SKILL.
+6. Minimum Playwright version is `1.64.0` for CI wiring produced by this SKILL.
 7. Keep Playwright runtime and dependencies aligned:
-   - Drone Playwright image tag (for example `mcr.microsoft.com/playwright:v1.61.1-*`),
+   - Drone Playwright image tag (for example `mcr.microsoft.com/playwright:v1.64.0-*`),
    - `@playwright/test` version,
    - `playwright` version,
    - lockfile-resolved versions.
@@ -83,7 +83,7 @@ If required inputs are missing, stop and report missing fields explicitly.
 3. PR e2e execution flow:
    - Ensure `deploy_to_branch` mounts `dockersock` at `/root/.dockersock`.
    - Add `e2e_tests` step (or update existing one) with same mount.
-   - Ensure the `e2e_tests` Playwright container image is at least `v1.61.1`.
+   - Ensure the `e2e_tests` Playwright container image is at least `v1.64.0`.
    - In `e2e_tests`, enforce commands:
      - `npm install -g n`
      - `n 24.21.0`
@@ -163,7 +163,7 @@ After edits, validate and report:
 6. Dockersock volume and branch URL artifact wiring.
 7. Ignore file compliance.
 8. Playwright version compliance:
-   - Drone Playwright image is `>=1.61.1`.
+   - Drone Playwright image is `>=1.64.0`.
    - `@playwright/test` and `playwright` are pinned and aligned with CI runtime.
    - lockfile reflects the pinned versions (no unresolved drift).
 9. Node runtime compliance:
