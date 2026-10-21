@@ -80,11 +80,10 @@ When target scripts already exist, updates should be minimal and behavior-aligne
 ## Mandatory Ignore Updates
 
 1. `.eslintignore` must include:
-- `e2e-tests`
 - `playwright-report`
 - `test-results`
 
-2. `.gitignore` must include:
+1. `.gitignore` must include:
 - `.features-gen`
 - `playwright-report`
 - `test-results`
