@@ -86,7 +86,7 @@ If required inputs are missing, stop and report missing fields explicitly.
    - Ensure the `e2e_tests` Playwright container image is at least `v1.64.0`.
    - In `e2e_tests`, enforce commands:
      - `npm install -g n`
-     - `n 24.21.0`
+     - `n 24.22.1`
      - `hash -r`
      - `node --version`
      - `yarn install --frozen-lockfile`
@@ -106,7 +106,7 @@ If required inputs are missing, stop and report missing fields explicitly.
    - Use `bin/summarise_playwright_report.js` for stable text summary generation.
    - In nightly test step, include the same Node bootstrap commands before `yarn install --frozen-lockfile` to satisfy engines:
      - `npm install -g n`
-     - `n 24.21.0`
+     - `n 24.22.1`
      - `hash -r`
      - `node --version`
      - `yarn install --frozen-lockfile`
@@ -127,7 +127,7 @@ If required inputs are missing, stop and report missing fields explicitly.
    - If a reference is already exactly `quay.io/ukhomeofficedigital/hof-nodejs:24.22.2_2-alpine@sha256:9279cf6e97dd0c1e0ea106153c2847a23a99bac3a588f7eb564d1f54eb3c92af`, leave it unchanged.
    - After editing, search the checked files for remaining old Node image references and report any intentionally preserved references as warnings.
 
-8. Update node engine in package.json to `>=24.21.0 <25.0.0` if it hasn't already been done.
+8. Update node engine in package.json to `>=24.22.1 <25.0.0` if it hasn't already been done.
 
 ## Supporting Scripts
 
@@ -169,7 +169,7 @@ After edits, validate and report:
 9. Node runtime compliance:
    - `Dockerfile` and `.drone.yml`/`.drone.yaml` contain no remaining old `quay.io/ukhomeofficedigital/hof-nodejs:*` or stale `node:*` image references.
    - Every Node runtime image reference in those files is `quay.io/ukhomeofficedigital/hof-nodejs:24.22.2_2-alpine@sha256:9279cf6e97dd0c1e0ea106153c2847a23a99bac3a588f7eb564d1f54eb3c92af`, unless explicitly reported in `WARNINGS` with a reason.
-   - `package.json` `engines.node` is `>=24.21.0 <25.0.0`.
+   - `package.json` `engines.node` is `>=24.22.1 <25.0.0`.
 
 ## Output Format
 
