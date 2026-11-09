@@ -90,6 +90,10 @@ Out of scope:
 
 ## Migration Hardening Rules
 
+- Match autocomplete suggestions with an escaped, anchored, case-insensitive name when source data casing differs from rendered option labels. This preserves exact selection and prevents uppercase source values from missing title-case suggestions.
+- Keep `playwright` and `@playwright/test` on the same exact version and verify the resolved dependency tree before execution. Divergent lockfile versions can cause test collection to fail with an unexpected `test.describe()` error.
+- Use generated file-and-line selectors for isolated Scenario Outline cases when BDD titles are only `Example #N`. Description-based grep can select no tests, and repeated example IDs must remain separate executions.
+- Give independent validation commands unique artifact output directories outside another run's default output root. Concurrent Playwright cleanup can otherwise remove active trace/video files and produce `ENOENT` teardown failures after successful scenario steps.
 - Preserve source interaction semantics for tricky fields: if the source test used focus plus keyboard typing, mirror that instead of using fill.
 - Treat autocomplete and lookup inputs as selection workflows, not plain text entry. After typing, explicitly select the matching option before continuing.
 - Prefer role-based button clicks for primary actions when page markup varies between input and button implementations.
