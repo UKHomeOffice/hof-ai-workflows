@@ -1,6 +1,6 @@
 ---
 name: playwright-feature-implementer
-description: "Implement a supplied Playwright Gherkin feature file in the current service repository. Use when a QAT engineer provides a .feature file and wants the corresponding Playwright test implementation created or updated."
+description: "Implement a supplied Gherkin feature file as a Playwright BDD + Page Object Model test in the current service repository, strictly following the QAT LMR Playwright blueprint, with guardrails and verification gates. Use when a QAT engineer provides a .feature file and wants a blueprint-compliant Playwright implementation created or updated."
 argument-hint: "Path to the .feature file"
 user-invocable: true
 disable-model-invocation: true
@@ -8,7 +8,27 @@ disable-model-invocation: true
 
 # Playwright Feature Implementer
 
-Implement the supplied Gherkin feature file in the service repository represented by the current working directory.
+Implement the supplied Gherkin feature file in the service repository represented by the current working directory. The implementation must strictly follow the QAT "Playwright Test Structure – LMR Playwright and POM framework blueprint".
+
+## Goal
+
+Produce a complete, working Playwright implementation of exactly one feature file. The work is done only when all of these are true:
+
+1. Every step in the feature is bound to exactly one step definition, and `bddgen` generates the feature without missing or ambiguous steps.
+2. All new and touched code meets every MUST rule in [playwright-blueprint.md](./playwright-blueprint.md).
+3. Verification gates G1–G7 pass, or each one that cannot run is reported as blocked, with the exact missing prerequisite.
+4. The report follows the [Output Format](#output-format), including the compliance checklist with evidence.
+
+## Reference Files
+
+These files sit alongside this `SKILL.md`. `<skill-dir>` means this skill's folder.
+
+| File | Use |
+|---|---|
+| [playwright-blueprint.md](./playwright-blueprint.md) | Normative blueprint rules with IDs (ARCH, CFG, FEAT, STEP, FIX, POM, LOC, ASSERT, A11Y, DATA, SAFE, CODE, SCAF). Read it in full before Phase 1. |
+| [compliance-checklist.md](./compliance-checklist.md) | The checklist and gate pass conditions used in G7 and in the report. |
+| [scaffold-templates.md](./scaffold-templates.md) | Templates for scaffold mode (Phase 2). |
+| [blueprint-static-scan.sh](./blueprint-static-scan.sh) | Static rule scan for G2. Run `bash <skill-dir>/blueprint-static-scan.sh <files...>` from the target repository root. With no files, it scans the files changed relative to `HEAD`. |
 
 ## Input Contract
 
@@ -21,65 +41,148 @@ Implement the supplied Gherkin feature file in the service repository represente
 
 If the argument is missing, points outside the current working directory, does not exist, or is not a `.feature` file, stop and report the problem without changing files.
 
-## Repository Discovery
+## Guardrails
 
-Before creating or modifying tests:
+These are non-negotiable. If a guardrail can't be satisfied, stop that part of the work and report it under `BLOCKERS`. Never work around a guardrail.
 
-1. Confirm the current directory is a service repository by locating its Git root and relevant project files.
-2. Read repository-wide guidance, including `AGENTS.md`, `.github/copilot-instructions.md`, and equivalent instruction files.
-3. Find and apply applicable Playwright instructions, especially `.github/instructions/playwright-instructions.md` and matching `*.instructions.md` files.
-4. Inspect `package.json`, lockfiles, `playwright.config.*`, existing feature files, step definitions, fixtures, page objects, test data, and relevant scripts.
-5. Identify the repository's existing test style. Do not introduce Playwright BDD or a second test structure when the repository does not already use it.
-6. Check whether the supplied feature is already present and whether its steps already have implementations.
+1. **The feature is the contract (FEAT-01).** Never change the supplied feature's wording, step order, tags, Background, titles, outline placeholders or Examples values.
+   - If the file is already in the repository's features folder, use it in place.
+   - Otherwise, copy it there byte-for-byte.
+   - If a different file with the same name already exists there, stop and report it.
+   - Wording and structure improvements are reported only as recommendations (FEAT-02, FEAT-03, FEAT-06).
+2. **Precedence.** Blueprint rules beat repository conventions on structure, safety and assertion quality. Repository conventions and more specific local instructions win on naming, style, folder names and tooling commands (CODE-02). Record every conflict between local instructions and a blueprint MUST rule under `ASSUMPTIONS`. Never relax a SAFE or DATA rule because of one.
+3. **One test style (ARCH-04).** Implement the feature only as Playwright BDD (`playwright-bdd`) plus the Page Object Model. Don't convert or delete existing tests in other styles. List them under `DEVIATIONS_NOT_FIXED`.
+4. **Generated output is read-only (ARCH-02).** Never edit or stage `.features-gen/`, `playwright-report/` or `test-results/`.
+5. **Never weaken a test to make it pass.**
+   - Don't use fixed sleeps, XPath or position selectors, snapshot assertions, swallowed errors, `.only`, or unreported `.skip`/`.fixme` (ASSERT-02/03/05, LOC-03, POM-06).
+   - Don't remove or loosen an assertion, and don't use non-exact matching to hide a mismatch.
+6. **Safety (SAFE-01–03).** Never run scenarios that submit, send email or call external integrations against production, or against any target the user hasn't approved. Never print secrets or write them into code, features, reports or commits.
+7. **Synthetic data only (DATA-01, DATA-04).** Never commit `.env` files, real personal data, credentials or tokens.
+8. **Scope (SAFE-04).**
+   - Change only the files the feature needs, plus blueprint scaffolding in scaffold mode.
+   - Don't change CI/CD, application source or unrelated tests.
+   - Fix deviations only in code you write or touch (Phase 5).
+9. **Temporary mutations must leave no trace.** Gates G5 and G6 temporarily alter code. Restore every mutated file and prove it is unchanged, with a checksum or `git diff`, before continuing.
+10. **Honest reporting.** Never claim a command, gate or check passed unless you ran it and saw it pass. Never claim a package script exists unless it does. The only scripts you may add are the blueprint scripts (CFG-02), in scaffold or partial mode.
 
-Local repository instructions take precedence over this skill when they are more specific.
+## Phase 0: Preflight
 
-## Implementation Workflow
+1. Validate the input contract.
+2. Read [playwright-blueprint.md](./playwright-blueprint.md) and [compliance-checklist.md](./compliance-checklist.md).
+3. Record a baseline of `git status --porcelain`. Files that were already modified aren't yours: don't modify, revert or stage them. If a file you would need to change already has uncommitted changes, stop and report it.
 
-1. Parse the feature and inventory its Feature, tags, Background, scenarios, Scenario Outlines, Examples, and steps.
-2. Preserve the feature's titles, tags, scenario structure, Examples values, step wording, and step order unless the repository's instructions require a documented adjustment.
-3. Map each step to an existing implementation wherever possible.
-4. Implement only missing behaviour using the repository's established architecture.
-5. Reuse existing fixtures, helpers, page objects, selectors, test data, and step definitions. Do not create near-duplicate steps.
-6. Keep Gherkin declarative. Put browser operations, selectors, setup, and assertions in step definitions, fixtures, or page objects.
-7. Keep page objects focused on page behaviour and keep step definitions focused on user behaviour boundaries.
-8. Add or update only the files needed for the supplied feature and its implementation:
-   - the feature file, if it is not already present
-   - step definitions
-   - page objects
-   - fixtures
-   - test data
-   - narrowly required configuration or scripts
-9. Use accessible locators based on role, label, name, placeholder, or stable visible text. Use test IDs only when no stable user-facing locator exists.
-10. Use Playwright assertions and automatic waiting. Never use arbitrary sleeps such as `waitForTimeout`, XPath, or selectors tied to styling or DOM structure.
-11. Keep scenarios independent and test data deterministic. Follow existing authentication, cleanup, and external-service conventions.
-12. Do not refactor unrelated tests, reorganise directories, change CI/CD, or alter application behaviour.
+## Phase 1: Discovery and Conformance
 
-## Completion And Validation
+1. Find the Git root and the project files to confirm this is a service repository.
+2. Read repository guidance: `AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/playwright-instructions.md`, matching `*.instructions.md` files, and equivalents.
+3. Inspect:
+   - `package.json`, the lockfile and package manager, and `playwright.config.*` (including `defineBddConfig`)
+   - `.gitignore` and the lint and TypeScript configuration, including any `.eslintignore` that excludes the E2E folder
+   - the E2E folders: features, steps, fixture, pages, base page, constants and `requiredEnv`, and test data
+4. Classify the framework's **conformance** and record the evidence:
+   - `compliant`: `playwright-bdd` configured (CFG-01), blueprint scripts present (CFG-02), generated output ignored (CFG-03), a fixture with a typed `pages` registry (FIX-01/02), a base page (POM-01), and steps that use `createBdd(test)` from the fixture (STEP-01).
+   - `partial`: `playwright-bdd` is present, but one or more of those pieces is missing.
+   - `absent`: no `playwright-bdd`, whether or not other Playwright tests exist.
+5. Find the naming convention for classes and files (CODE-02) and the existing reusable pieces: steps, page objects, base helpers, constants, date and error helpers.
+6. **Baseline scan (read-only).** Run `bash <skill-dir>/blueprint-static-scan.sh <existing E2E files>` and record the findings as pre-existing deviations. They feed Phase 5 and `DEVIATIONS_NOT_FIXED`.
+7. Check whether the supplied feature is already present and which of its steps already have implementations.
+8. Classify the feature's **side effects**. Set `sideEffects = true` if any scenario submits a form, sends email or notifications, uploads, or calls an external integration. Infer this from the feature and the application's routes or behaviours, and when in doubt, treat it as `true`.
 
-Before reporting completion:
+## Phase 2: Scaffold (only when conformance is `partial` or `absent`)
 
-1. Verify every feature step has an existing or newly created implementation.
-2. Verify Scenario Outline Examples and feature structure were preserved.
-3. Run the smallest relevant commands discovered in the repository, in this order where available:
-   - BDD generation or feature compilation
-   - focused lint or formatting checks
-   - focused TypeScript or project type checks
-   - the supplied feature or its narrowest Playwright test command
-4. Fix failures caused by the implementation and rerun the focused validation.
-5. Do not invent package scripts or claim validation passed when tooling is unavailable.
-6. If execution is blocked by missing services, credentials, browsers, or environment data, report the exact prerequisite and retain the implementation changes when they are otherwise valid.
+1. Follow the SCAF rules and [scaffold-templates.md](./scaffold-templates.md). For `partial`, add only the missing pieces and keep everything that already conforms.
+2. Use the target service's own port, start command, routes and labels. Never copy LMR values (CFG-05).
+3. Add the dev dependencies with the repository's package manager so the lockfile stays consistent (SCAF-02). If installation is not possible, still write the config and files, then report the install as a blocker.
+4. Don't move, rename or rewrite existing tests.
+5. List every scaffolded file in `FILES_CHANGED`, marked `scaffold`. Record the unknown test boundaries from SCAF-01 (environment, recipients, cleanup, artifact retention) under `ASSUMPTIONS`.
+
+## Phase 3: Feature Analysis and Pattern Selection
+
+1. Inventory the feature: Feature title, tags, Background, Scenarios, Scenario Outlines, Examples, data tables, doc strings and every step.
+2. For each step, search for an existing step definition that matches its expression exactly and reuse it (STEP-08). Flag any step that would match more than one definition.
+3. Choose one pattern for each new step:
+   - **Plain or parameterised step** (`{string}`, `{int}`): every parameter must be used (STEP-04).
+   - **Two-column data table**: use `rowsHash()` and throw an error for a missing key (FEAT-04, STEP-05).
+   - **Multiple validation messages**: split them on `¬` and assert them in order (FEAT-05, ASSERT-04).
+   - **Journey switch (STEP-10)**: only when an outline placeholder names a journey. List every Examples value next to its exact lowercased `case` label, and check whitespace and punctuation character by character.
+   - **Different expected outcome**: use separate explicit steps or scenarios, never the shared switch completion (STEP-10d).
+4. List the pages the feature visits. Map each one to an existing page object, or plan a new one with its locators chosen in the order LOC-01 → LOC-02.
+   - Take labels, headings, button names and titles from the application source (views or templates, field and step config, translation or locale files), or from the running app.
+   - Never invent accessible names. Record any name you couldn't confirm under `ASSUMPTIONS`.
+5. Record any FEAT-02, FEAT-03 or FEAT-06 recommendations for the report.
+
+## Phase 4: Implement the Layers
+
+Implement in this order, applying the rules indicated:
+
+1. **Constants and data (DATA-01 to DATA-06):** reuse existing constants first. Add synthetic values only. Read configuration through `requiredEnv`, lazily where practical. Build relative dates with the date helper.
+2. **Page objects (POM, LOC, A11Y):**
+   - Extend the base page and call `super(page)`.
+   - Create `readonly` locators in the constructor, and give methods names that express user intent.
+   - Add JSDoc to any method with side effects.
+   - Completion methods follow the pattern: accessibility scan, title check, fill, continue (POM-07, A11Y-02).
+   - Never import or instantiate another page object.
+3. **Fixture (FIX-01 to FIX-03):** register each new page in **both** the `Pages` type and the `use({...})` object.
+4. **Steps (STEP, ASSERT):**
+   - Use `createBdd(test)` with `test` from the fixture, and destructure `{ pages }`.
+   - Await every call, and keep selectors and raw `page` calls out of step files.
+   - Throw explicit errors that include the original value.
+   - Every `Then` must assert a meaningful, observable outcome with a retrying assertion.
+5. **Feature placement:** place the feature in the features folder, unchanged (Guardrail 1).
+
+## Phase 5: Touched-Code Remediation
+
+1. Treat code as **touched** if you edited it or if your implementation calls it, such as reused steps, page methods and base helpers.
+2. Check touched code against the MUST rules, using the Phase 1 baseline scan and a manual review.
+3. Fix a violation only when the fix is local and keeps behaviour the same for every other scenario. An example is replacing an `expect(await x.isVisible()).toBe(true)` snapshot inside a page method with `await expect(x).toBeVisible()`.
+4. **Don't** change shared base-page behaviour, shared step expressions or public method signatures that other scenarios use. Report these under `DEVIATIONS_NOT_FIXED` with the rule ID, `file:line`, the impact, and a suggested fix.
+5. Report findings in untouched code only. Don't fix them.
+
+## Phase 6: Verification Gates
+
+Use the repository's own scripts where they exist. The pass conditions are defined in [compliance-checklist.md](./compliance-checklist.md#gate-summary). Fix any failure your implementation caused, and rerun from G1. Never fix a failure by weakening a test.
+
+- **G1, generation:** run the BDD generation script (for example `yarn bddgen` or `npx bddgen`). Pass when it exits 0, has no missing or ambiguous step messages for the feature, and the feature's generated spec exists under `.features-gen/`.
+- **G2, static scan:** run `bash <skill-dir>/blueprint-static-scan.sh <every new or modified file, including the feature>`. Pass when there are 0 errors. Fix each warning, or justify it under `COMPLIANCE_CHECKLIST`.
+- **G3, lint and types:** run the repository's lint and type-check commands for the E2E code. If none cover the E2E folder, run `npx tsc --noEmit -p <tsconfig covering E2E>` (CODE-03) and report the gap.
+- **G4, safety then focused run:**
+  1. Work out the target. With `PLAYWRIGHT_BASE_URL` unset, it is the local `webServer`. With it set, it is that URL.
+  2. If `sideEffects = true` and the target isn't local, run only after the user has explicitly confirmed that the URL is an approved non-production environment for this run. Never run against production. Note retries × side effects (SAFE-02).
+  3. Run only the supplied feature, for example `npx bddgen && npx playwright test <generated spec path>`, or with `--grep` and its title or tag. Every scenario must pass.
+  4. If the run isn't safe, or its prerequisites (server, credentials, browser) are missing, don't run it. Report it as blocked, with the exact prerequisite.
+- **G5, negative-assertion proof:**
+  1. Record checksums (`shasum`) of the files you will mutate.
+  2. Temporarily change the expected value in one meaningful `Then`, in step or page code, not in the feature.
+  3. Rerun the focused scenario. It must fail, with an assertion error that shows the mutated value, not a timeout or setup error.
+  4. Restore the files, confirm the checksums match, and rerun G4 to confirm it is green.
+  5. If G4 couldn't run, G5 is blocked.
+- **G6, unknown-case proof:**
+  1. Where the feature uses a journey switch, a value mapping or a required data-table key, temporarily rename one `case` label or required key in the step code.
+  2. Rerun the focused scenario. It must fail with the explicit error message (for example `Invalid scenario: <original value>`).
+  3. Restore the files, confirm the checksums, and rerun G4.
+  4. If there are no such guards, mark G6 `N/A` with the reason.
+- **G7, checklist:** complete every row of [compliance-checklist.md](./compliance-checklist.md) with `PASS`, `FAIL`, `N/A` or `REPORTED`, with `file:line` or command evidence. Every MUST row for new or touched code must be `PASS` or `N/A`.
+
+Finally:
+
+1. Run `git status --porcelain` and `git diff --stat`.
+2. Confirm that only the intended files changed and no mutation is left behind.
+3. Confirm that nothing generated or secret is staged, and that pre-existing changes from the baseline are untouched.
 
 ## Output Format
 
 Report these sections in order:
 
-1. `IMPLEMENTATION_SUMMARY`
-2. `FILES_CHANGED`
-3. `STEP_IMPLEMENTATION_MAP`
-4. `VALIDATION_COMMANDS`
-5. `VALIDATION_RESULTS`
-6. `ASSUMPTIONS`
-7. `BLOCKERS`
+1. `IMPLEMENTATION_SUMMARY`: what was implemented, and the side-effects classification.
+2. `BLUEPRINT_CONFORMANCE`: the classification (`compliant`, `partial` or `absent`) with evidence, what was scaffolded, the precedence conflicts, and the feature recommendations (FEAT-02, FEAT-03, FEAT-06).
+3. `FILES_CHANGED`: each file, marked `new`, `modified` or `scaffold`, with a one-line purpose.
+4. `STEP_IMPLEMENTATION_MAP`: each feature step mapped to its step definition (`file:line`), marked `reused` or `new`, and the page-object methods it calls.
+5. `VALIDATION_COMMANDS`: the exact commands run.
+6. `VALIDATION_RESULTS`: the result of each command, with key output lines.
+7. `VERIFICATION_GATES`: G1–G7, each `PASS`, `FAIL`, `BLOCKED` or `N/A`, with evidence, including the G5 and G6 failure messages and restore proof.
+8. `COMPLIANCE_CHECKLIST`: every checklist ID, with its status and evidence.
+9. `DEVIATIONS_NOT_FIXED`: pre-existing or shared-code deviations, each with the rule ID, `file:line`, the reason it wasn't fixed, and a suggested fix.
+10. `ASSUMPTIONS`: unconfirmed labels, test boundaries, conflicts with local instructions, and the timezone or date assumptions.
+11. `BLOCKERS`: unimplemented steps, gates that couldn't run, missing prerequisites, and installs that couldn't be done. Never skip work silently.
 
-`STEP_IMPLEMENTATION_MAP` must identify each feature step and the step definition, fixture, page object, or helper that implements it. `BLOCKERS` must explicitly list any unimplemented step or unavailable validation; do not silently skip work.
+Always state in the report that automated axe checks give only partial accessibility coverage (A11Y-03). If scaffolding was done, list the follow-ups from SCAF-07 (CI wiring, wider coverage) as next steps.
