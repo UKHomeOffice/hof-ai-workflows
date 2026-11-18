@@ -146,9 +146,9 @@ Use the repository's own scripts where they exist. The pass conditions are defin
 - **G2, static scan:** run `bash <skill-dir>/blueprint-static-scan.sh <every new or modified file, including the feature>`. Pass when there are 0 errors. Fix each warning, or justify it under `COMPLIANCE_CHECKLIST`.
 - **G3, lint and types:** run the repository's lint and type-check commands for the E2E code. If none cover the E2E folder, run `npx tsc --noEmit -p <tsconfig covering E2E>` (CODE-03) and report the gap.
 - **G4, safety then focused run:**
-  1. Work out the target. With `PLAYWRIGHT_BASE_URL` unset, it is the local `webServer`. With it set, it is that URL.
+  1. Resolve all execution targets from the selected projects' effective Playwright configuration, including environment loading, project-level `use.baseURL` overrides, `webServer` settings, and absolute navigation URLs used by the feature. Do not infer locality from whether `PLAYWRIGHT_BASE_URL` is set. If any target cannot be confirmed, mark G4 and dependent execution gates blocked.
   2. If `sideEffects = true` and the target isn't local, run only after the user has explicitly confirmed that the URL is an approved non-production environment for this run. Never run against production. Note retries × side effects (SAFE-02).
-  3. Run only the supplied feature, for example `npx bddgen && npx playwright test <generated spec path>`, or with `--grep` and its title or tag. Every scenario must pass.
+  3. Run only the supplied feature by passing its generated spec path, for example `npx bddgen && npx playwright test <generated spec path>`. Do not use a title or tag alone to scope the run, since other features can match it. Every scenario in the supplied feature must pass.
   4. If the run isn't safe, or its prerequisites (server, credentials, browser) are missing, don't run it. Report it as blocked, with the exact prerequisite.
 - **G5, negative-assertion proof:**
   1. Record checksums (`shasum`) of the files you will mutate.

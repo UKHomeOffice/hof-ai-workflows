@@ -28,6 +28,8 @@ Install these with the repository's package manager and lockfile, in versions th
 
 ## `playwright.config.ts` (CFG-01, CFG-04)
 
+Use the full configuration below only when no Playwright configuration exists. When plain Playwright tests already exist, merge BDD through a separately scoped project while preserving existing projects and their effective discovery settings, so existing specs still run without duplication. Preserve existing runner commands when adapting the script examples below; if these constraints cannot be met, stop scaffolding and report the conflict under `BLOCKERS`.
+
 ```ts
 import { defineConfig, devices } from '@playwright/test';
 import { defineBddConfig } from 'playwright-bdd';
@@ -152,7 +154,7 @@ export class BasePage {
   /** Asserts the page title, allowing for the "Error: " prefix after a failed submission. */
   async assertTitle(title: string, allowErrorPrefix = false): Promise<void> {
     const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    await expect(this.page).toHaveTitle(new RegExp(`^${allowErrorPrefix ? '(Error: )?' : ''}${escaped}`));
+    await expect(this.page).toHaveTitle(new RegExp(`^${allowErrorPrefix ? '(Error: )?' : ''}${escaped}$`));
   }
 
   /** Asserts the error-summary heading and the ordered list of messages (ASSERT-04). */

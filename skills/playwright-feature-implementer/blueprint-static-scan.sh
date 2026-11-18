@@ -106,8 +106,8 @@ for file in "${files[@]}"; do
   esac
 
   if [ ! -f "$file" ]; then
-    echo "SKIP $file (not a regular file)" >&2
-    continue
+    echo "Cannot scan $file (not a regular file)" >&2
+    exit 2
   fi
 
   is_code=0; is_step=0; is_page=0; is_feature=0

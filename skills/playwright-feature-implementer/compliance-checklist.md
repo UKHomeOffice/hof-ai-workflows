@@ -82,8 +82,8 @@ Verification method key:
 |---|---|---|
 | G1 | Generation | `bddgen` exits 0; no missing or ambiguous step warnings for the feature |
 | G2 | Static rules | `blueprint-static-scan.sh` exits 0 on new or touched files; every warning is justified |
-| G3 | Types and lint | The repository's type-check and lint commands for E2E exit 0, or the gap is reported |
-| G4 | Safe execution | Safety decision recorded; focused run against an approved target passes, or it was not run, with the reason |
+| G3 | Types and lint | PASS only when both the E2E type-check and lint commands run and exit 0; BLOCKED when coverage or required tooling is unavailable, with the exact gap reported |
+| G4 | Safe execution | PASS only when the safety decision is recorded and the focused run against an approved target passes; BLOCKED when execution is unsafe or prerequisites are missing, with the exact reason |
 | G5 | Assertions can fail | A temporarily broken expected value in a `Then` makes the focused run fail; restored; `git diff` shows no residue |
 | G6 | Explicit failure | A temporarily unknown journey or missing table key throws the descriptive error; restored; no residue |
 | G7 | Checklist | Every row above is marked with evidence |
